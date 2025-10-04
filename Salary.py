@@ -13,16 +13,15 @@ class SalaryType(Enum):
     Netto = 2
 
 
-class Salary[T](ABC):
+class Salary(ABC):
     def __init__(self, rates: Rates) -> None:
         self.rates = rates
-        self.options: T
 
-        self.salary_amount = Decimal('0')
+        self.salary_base = Decimal('0')
 
         self.placa_podstawowa: Decimal = Decimal('0.0')
         self.placa_chorobowa: Decimal = Decimal('0.0')
-        self.koszt_dzialalnosc: Decimal= Decimal('0.0')
+        #self.koszt_dzialalnosc: Decimal= Decimal('0.0')
         self.wynagrodzenie_brutto: Decimal= Decimal('0.0')
         self.podstawa_ub_spolecznych: Decimal= Decimal('0.0')
         self.ub_emeryt: Decimal= Decimal('0.0')
@@ -30,13 +29,13 @@ class Salary[T](ABC):
         self.ub_chor: Decimal= Decimal('0.0')
         self.ub_spol: Decimal= Decimal('0.0')
         self.koszt: Decimal= Decimal('0.0')
-        self.koszt_norm: Decimal= Decimal('0.0')
-        self.koszt_fifty: Decimal= Decimal('0.0')
+        #self.koszt_norm: Decimal= Decimal('0.0')
+        #self.koszt_fifty: Decimal= Decimal('0.0')
         self.podst_zdrow: Decimal= Decimal('0.0')
         self.podst_podatek: Decimal= Decimal('0.0')
         self.podatek: Decimal= Decimal('0.0')
         self.ub_zdrowotne: Decimal= Decimal('0.0')
-        self.ub_zdr_odl: Decimal= Decimal('0.0')
+        #self.ub_zdr_odl: Decimal= Decimal('0.0')
         self.ppk_podatek: Decimal= Decimal('0.0')
         self.zal_podatek: Decimal= Decimal('0.0')
         self.potracenia_wyplaty: Decimal= Decimal('0.0')
@@ -53,130 +52,134 @@ class Salary[T](ABC):
         self.is_calculated: bool = False
 
     @abstractmethod
-    def calculate_placa_podstawowa(self) -> Decimal:
+    def _calculate_placa_podstawowa(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_placa_chorobowa(self) -> Decimal:
+    def _calculate_placa_chorobowa(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_podstawa_ub_spolecznych(self) -> Decimal:
+    def _calculate_wynagrodzenie_brutto(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_ub_emeryt(self) -> Decimal:
+    def _calculate_podstawa_ub_spolecznych(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_ub_rent(self) -> Decimal:
+    def _calculate_ub_emeryt(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_ub_chor(self) -> Decimal:
+    def _calculate_ub_rent(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_ub_spol(self) -> Decimal:
+    def _calculate_ub_chor(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_koszt(self) -> Decimal:
+    def _calculate_ub_spol(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_koszt_norm(self) -> Decimal:
+    def _calculate_koszt(self) -> Decimal:
+        pass
+
+    #@abstractmethod
+    #def _calculate_koszt_norm(self) -> Decimal:
+    #    pass
+
+    #@abstractmethod
+    #def _calculate_koszt_fifty(self) -> Decimal:
+    #    pass
+
+    @abstractmethod
+    def _calculate_podst_zdrow(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_koszt_fifty(self) -> Decimal:
+    def _calculate_podst_podatek(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_podst_zdrow(self) -> Decimal:
+    def _calculate_podatek(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_podst_podatek(self) -> Decimal:
+    def _calculate_ub_zdrowotne(self) -> Decimal:
+        pass
+
+    #@abstractmethod
+    #def _calculate_ub_zdr_odl(self) -> Decimal:
+    #    pass
+
+    @abstractmethod
+    def _calculate_ppk_podatek(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_podatek(self) -> Decimal:
+    def _calculate_zal_podatek(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_ub_zdrowotne(self) -> Decimal:
+    def _calculate_potracenia_wyplaty(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_ub_zdr_odl(self) -> Decimal:
+    def _calculate_ppk_pracownik(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_ppk_podatek(self) -> Decimal:
+    def _calculate_wynagrodzenie_netto(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_zal_podatek(self) -> Decimal:
+    def _calculate_prac_ub_emeryt(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_potraceniai_wyplaty(self) -> Decimal:
+    def _calculate_prac_ub_rent(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_ppk_pracownik(self) -> Decimal:
+    def _calculate_prac_ub_wyp(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_wynagrodzenie_netto(self) -> Decimal:
+    def _calculate_fp(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_prac_ub_emeryt(self) -> Decimal:
+    def _calculate_fgsp(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_prac_ub_rent(self) -> Decimal:
+    def _calculate_ppk_pracodawca(self) -> Decimal:
         pass
 
     @abstractmethod
-    def calculate_prac_ub_wyp(self) -> Decimal:
-        pass
-
-    @abstractmethod
-    def calculate_fp(self) -> Decimal:
-        pass
-
-    @abstractmethod
-    def calculate_fgsp(self) -> Decimal:
-        pass
-
-    @abstractmethod
-    def calculate_ppk_pracodawca(self) -> Decimal:
-        pass
-
-    @abstractmethod
-    def calculate_brutto_brutto(self) -> Decimal:
+    def _calculate_brutto_brutto(self) -> Decimal:
         pass
 
     @property
     def suma_narzutow(self) -> Decimal:
-        return self.brutto_brutto-self.wynagrodzenie_netto
+        return (self.brutto_brutto-self.wynagrodzenie_netto).quantize(Decimal('0.01'))
 
 
     @property
     def brutto_ration(self) -> Decimal:
-        return (self.wynagrodzenie_brutto / self.brutto_brutto)*100
+        return ((self.wynagrodzenie_brutto / self.brutto_brutto)*100).quantize(Decimal('0.01'))
 
     @property
     def netto_ratio(self)-> Decimal:
-        return (self.wynagrodzenie_netto/ self.brutto_brutto)*100
+        return ((self.wynagrodzenie_netto/ self.brutto_brutto)*100).quantize(Decimal('0.01'))
 
 
     @property
     def suma_narzutow_ratio(self) -> Decimal:
-        return (self.suma_narzutow/self.brutto_ration)*100
+        return ((self.suma_narzutow/self.brutto_brutto)*100).quantize(Decimal('0.01'))
 
 
     @property
@@ -187,8 +190,8 @@ class Salary[T](ABC):
     # def rodzaj_koszt(self) -> int:
     #     pass
 
-    def calculate(self, salary_amount: Decimal, salary_type: SalaryType) -> None:
-        self.salary_amount = salary_amount
+    def calculate(self, salary_base: Decimal, salary_type: SalaryType) -> None:
+        self.salary_base = salary_base
         if salary_type == SalaryType.Brutto:
 
             self._calculate_brutto()
@@ -200,38 +203,60 @@ class Salary[T](ABC):
 
 
     def _calculate_brutto(self) -> None:
-        self.placa_podstawowa = self.calculate_placa_podstawowa()
-        self.placa_chorobowa = self.calculate_placa_chorobowa()
-        self.podstawa_ub_spolecznych = self.calculate_podstawa_ub_spolecznych()
-        self.ub_emeryt = self.calculate_ub_emeryt()
-        self.ub_rent = self.calculate_ub_rent()
-        self.ub_chor = self.calculate_ub_chor()
-        self.ub_spol = self.calculate_ub_spol()
-        self.podst_zdrow = self.calculate_podst_zdrow()
-        self.koszt_norm = self.calculate_koszt_norm()
-        self.koszt_fifty = self.calculate_koszt_fifty()
-        self.koszt = self.calculate_koszt()
-        self.podst_podatek = self.calculate_podst_podatek()
-        self.podatek = self.calculate_podatek()
-        self.ub_zdrowotne = self.calculate_ub_zdrowotne()
-        self.ub_zdr_odl = self.calculate_ub_zdr_odl()
-        self.ppk_podatek = self.calculate_ppk_podatek()
-        self.zal_podatek = self.calculate_zal_podatek()
-        self.ppk_pracownik = self.calculate_ppk_pracownik()
-        self.wynagrodzenie_netto = self.calculate_wynagrodzenie_netto()
-        self.prac_ub_emeryt = self.calculate_prac_ub_emeryt()
-        self.prac_ub_rent = self.calculate_prac_ub_rent()
-        self.prac_ub_wyp = self.calculate_prac_ub_wyp()
-        self.fp = self.calculate_fp()
-        self.fgsp = self.calculate_fgsp()
-        self.ppk_pracodawca = self.calculate_ppk_pracodawca()
-        self.brutto_brutto = self.calculate_brutto_brutto()
-
+        self.placa_podstawowa = self._calculate_placa_podstawowa().quantize(Decimal('0.01'))
+        self.placa_chorobowa = self._calculate_placa_chorobowa().quantize(Decimal('0.01'))
+        self.wynagrodzenie_brutto= self._calculate_wynagrodzenie_brutto().quantize(Decimal('0.01'))
+        self.podstawa_ub_spolecznych = self._calculate_podstawa_ub_spolecznych().quantize(Decimal('0.01'))
+        self.ub_emeryt = self._calculate_ub_emeryt().quantize(Decimal('0.01'))
+        self.ub_rent = self._calculate_ub_rent().quantize(Decimal('0.01'))
+        self.ub_chor = self._calculate_ub_chor().quantize(Decimal('0.01'))
+        self.ub_spol = self._calculate_ub_spol().quantize(Decimal('0.01'))
+        self.podst_zdrow = self._calculate_podst_zdrow().quantize(Decimal('0.01'))
+        #self.koszt_norm = self._calculate_koszt_norm()
+        #self.koszt_fifty = self._calculate_koszt_fifty()
+        self.koszt = self._calculate_koszt().quantize(Decimal('0.01'))
+        self.podst_podatek = self._calculate_podst_podatek().quantize(Decimal('0.01'))
+        self.podatek = self._calculate_podatek().quantize(Decimal('0.01'))
+        self.ub_zdrowotne = self._calculate_ub_zdrowotne().quantize(Decimal('0.01'))
+        #self.ub_zdr_odl = self._calculate_ub_zdr_odl()
+        self.ppk_podatek = self._calculate_ppk_podatek().quantize(Decimal('0.01'))
+        self.zal_podatek = self._calculate_zal_podatek().quantize(Decimal('0.01'))
+        self.ppk_pracownik = self._calculate_ppk_pracownik().quantize(Decimal('0.01'))
+        self.wynagrodzenie_netto = self._calculate_wynagrodzenie_netto().quantize(Decimal('0.01'))
+        self.prac_ub_emeryt = self._calculate_prac_ub_emeryt().quantize(Decimal('0.01'))
+        self.prac_ub_rent = self._calculate_prac_ub_rent().quantize(Decimal('0.01'))
+        self.prac_ub_wyp = self._calculate_prac_ub_wyp().quantize(Decimal('0.01'))
+        self.fp = self._calculate_fp().quantize(Decimal('0.01'))
+        self.fgsp = self._calculate_fgsp().quantize(Decimal('0.01'))
+        self.ppk_pracodawca = self._calculate_ppk_pracodawca().quantize(Decimal('0.01'))
+        self.brutto_brutto = self._calculate_brutto_brutto().quantize(Decimal('0.01'))
 
 
     def _calculate_netto(self) -> None:
-        pass
+        wished_netto = self.salary_base #salary_base= brutto_estimate
 
+
+        while self.wynagrodzenie_netto.quantize(Decimal('0.1')) != wished_netto.quantize(Decimal('0.1')) :
+
+            self.salary_base += wished_netto- self.wynagrodzenie_netto
+            self._calculate_brutto()
+            #print(self.salary_base, self.wynagrodzenie_netto)
+
+        self.salary_base = wished_netto
+
+    def __str__(self) -> str:
+
+        return str(self.get_all_output())
+
+    def get_all_output(self)-> dict:
+        output = self.__dict__
+        return {k:i for k,i in output.items() if k not in ["rates","options"]}
+
+    def get_rates(self) -> Rates:
+        return self.rates
+
+    def get_options(self) -> dict:
+        return self.__dict__['options']
 
 
 class UmowaOPraceDict(TypedDict):
@@ -266,73 +291,81 @@ class UmowaOPraceOptions:
         return cls(**data)
 
     @classmethod
-    def Builder(cls) -> 'Builder':
+    def builder(cls) -> 'Builder':
         return cls.Builder()
+
     class Builder:
         def __init__(self):
-            self.options = UmowaOPraceOptions()
+
+            self._options = UmowaOPraceOptions()
 
         def is_podwyzszone_koszty(self, isPodwyzszoneKoszty: bool) -> Self:
-            self.options.podwyzszoneKoszty = isPodwyzszoneKoszty
+            self._options.podwyzszoneKoszty = isPodwyzszoneKoszty
             return self
         def set_koszty_fifty_ratio(self, kosztyFiftyRatio: Decimal) -> Self:
-            self.options.kosztyFiftyRatio = kosztyFiftyRatio
+            self._options.kosztyFiftyRatio = kosztyFiftyRatio
             return self
         def is_FPFGSP(self, isNotFPFGSP: bool) -> Self:
-            self.options.FPFGSP = isNotFPFGSP
+            self._options.FPFGSP = isNotFPFGSP
             return self
         def is_dzialanosc(self, isDzialanosc: bool) -> Self:
-            self.options.dzialanosc = isDzialanosc
+            self._options.dzialanosc = isDzialanosc
             return self
         def set_pChor(self, isPChor: Decimal) -> Self:
-            self.options.pChor = isPChor
+            self._options.pChor = isPChor
             return self
         def set_brutto_this_month(self, bruttoThisMonth: Decimal) -> Self:
-            self.options.bruttoSumThisMonth = bruttoThisMonth
+            self._options.bruttoSumThisMonth = bruttoThisMonth
             return self
         def set_podst_ub_spol_sum(self, podstUbSpolSum: Decimal) -> Self:
-            self.options.podstUbSpolSum = podstUbSpolSum
+            self._options.podstUbSpolSum = podstUbSpolSum
             return self
         def set_koszt_fifty_sum(self,kosztFiftySum: Decimal) -> Self:
-            self.options.kosztFiftySum = kosztFiftySum
+            self._options.kosztFiftySum = kosztFiftySum
             return self
         def set_podst_podatek_sum(self, podstPodatekSum: Decimal) -> Self:
-            self.options.podstPodatekSum = podstPodatekSum
+            self._options.podstPodatekSum = podstPodatekSum
             return self
         def set_ppk_pracownik(self, ppkPracownik: Decimal) -> Self:
-            self.options.ppkPracownik = ppkPracownik
+            self._options.ppkPracownik = ppkPracownik
             return self
         def set_ppk_pracodawca(self, ppkPracodawca: Decimal) -> Self:
-            self.options.ppkPracodawca = ppkPracodawca
+            self._options.ppkPracodawca = ppkPracodawca
             return self
         def build(self) -> 'UmowaOPraceOptions':
-            return self.options
+            return self._options
 
 
-class UmowaOPrace[UmowaOPraceOptions](Salary):
+class UmowaOPrace(Salary):
     def __init__(self, rates: Rates):
         super().__init__(rates)
-        self.options: UmowaOPraceOptions = UmowaOPraceOptions
+        self.options: UmowaOPraceOptions = UmowaOPraceOptions()
 
     def set_options(self, options: UmowaOPraceOptions) -> None:
         self.options = options
 
     @override
-    def calculate_placa_podstawowa(self) -> Decimal:
-        return self.salary_amount
+    def _calculate_placa_podstawowa(self) -> Decimal:
+        return self.salary_base
 
     @override
-    def calculate_placa_chorobowa(self) -> Decimal:
+    def _calculate_placa_chorobowa(self) -> Decimal:
         return self.options.pChor
 
     @override
-    def calculate_podstawa_ub_spolecznych(self) -> Decimal:
-        return self.salary_amount
+    def _calculate_wynagrodzenie_brutto(self) -> Decimal:
+        return self.placa_podstawowa+self.placa_chorobowa
+
+    @override
+    def _calculate_podstawa_ub_spolecznych(self) -> Decimal:
+        return self.salary_base
 
     def sum_total_podst_ub_spol(self) -> Decimal:
         return self.options.podstUbSpolSum + self.podstawa_ub_spolecznych
+
     @override
-    def calculate_ub_emeryt(self) -> Decimal:
+    def _calculate_ub_emeryt(self) -> Decimal:
+
         if self.sum_total_podst_ub_spol() <= self.rates.ograniczenie_zus:
             return self.podstawa_ub_spolecznych *self.rates.ub_emeryt
         elif self.sum_total_podst_ub_spol() - self.podstawa_ub_spolecznych > self.rates.ograniczenie_zus:
@@ -341,7 +374,7 @@ class UmowaOPrace[UmowaOPraceOptions](Salary):
             return (self.podstawa_ub_spolecznych -(self.sum_total_podst_ub_spol() - self.rates.ograniczenie_zus))*self.rates.ub_emeryt
 
     @override
-    def calculate_ub_rent(self) -> Decimal:
+    def _calculate_ub_rent(self) -> Decimal:
         if self.sum_total_podst_ub_spol() <= self.rates.ograniczenie_zus:
             return self.podstawa_ub_spolecznych * self.rates.ub_rent
         elif self.sum_total_podst_ub_spol() - self.podstawa_ub_spolecznych > self.rates.ograniczenie_zus:
@@ -351,115 +384,176 @@ class UmowaOPrace[UmowaOPraceOptions](Salary):
                         self.sum_total_podst_ub_spol() - self.rates.ograniczenie_zus)) * self.rates.ub_rent
 
     @override
-    def calculate_ub_chor(self) -> Decimal:
+    def _calculate_ub_chor(self) -> Decimal:
         return self.podstawa_ub_spolecznych * self.rates.ub_chor
 
     @override
-    def calculate_ub_spol(self) -> Decimal:
+    def _calculate_ub_spol(self) -> Decimal:
         return self.ub_emeryt + self.ub_rent + self.ub_chor
 
     @override
-    def calculate_koszt(self) -> Decimal:
-        pass
+    def _calculate_koszt(self) -> Decimal:
+        if self.options.podwyzszoneKoszty:
+            return self.rates.koszt_uzysk_przych[1]
+        else: return self.rates.koszt_uzysk_przych[0]
+
+   # @override
+   # def _calculate_koszt_norm(self) -> Decimal:
+   #    pass
+
+   # @override
+   # def _calculate_koszt_fifty(self) -> Decimal:
+   #     pass
 
     @override
-    def calculate_koszt_norm(self) -> Decimal:
-        pass
+    def _calculate_podst_zdrow(self) -> Decimal:
+        return self.wynagrodzenie_brutto - self.ub_spol
 
     @override
-    def calculate_koszt_fifty(self) -> Decimal:
-        pass
+    def _calculate_ub_zdrowotne(self) -> Decimal:
+        return self.podst_zdrow * self.rates.ub_zdr
 
     @override
-    def calculate_podst_zdrow(self) -> Decimal:
-        pass
+    def _calculate_podst_podatek(self) -> Decimal:
+        return self.wynagrodzenie_brutto - self.ub_spol - self.koszt
 
     @override
-    def calculate_podst_podatek(self) -> Decimal:
-        pass
+    def _calculate_podatek(self) -> Decimal:
+        out = Decimal('0.0')
+        suma_podst_podatek = self.options.podstPodatekSum + self.podst_podatek
+        if not self.options.dzialanosc:
+            if suma_podst_podatek <= self.rates.prog_podatkowy:
+                out = self.podst_podatek * self.rates.pod_doch[0] - self.rates.podatek_wony_mies
+            elif suma_podst_podatek-self.podst_podatek <= self.rates.prog_podatkowy:
+                pod_1=(self.rates.prog_podatkowy-(suma_podst_podatek-self.podst_podatek)) *self.rates.pod_doch[0]- self.rates.podatek_wony_mies
+                pod_2=(suma_podst_podatek-self.rates.prog_podatkowy) * self.rates.pod_doch[1]
+                out= pod_1+pod_2
+            else:
+                out=  self.podst_podatek * self.rates.pod_doch[1]
+        else:
+            if suma_podst_podatek <= self.rates.prog_podatkowy:
+                out= self.podst_podatek * self.rates.pod_doch[0]
+
+            elif suma_podst_podatek-self.podst_podatek <=  self.rates.prog_podatkowy:
+                pod_1=(self.rates.prog_podatkowy-self.podst_podatek) * self.rates.pod_doch[0]
+                pod_2=(suma_podst_podatek-self.rates.prog_podatkowy) * self.rates.pod_doch[1]
+
+                out=pod_1+pod_2
+
+            else:
+                out= self.podst_podatek  * self.rates.pod_doch[1]
+
+
+        return out if out > 0 else Decimal('0.0')
+
+
+
+    #@override
+    #def _calculate_ub_zdr_odl(self) -> Decimal:
+    #    pass
 
     @override
-    def calculate_podatek(self) -> Decimal:
-        pass
+    def _calculate_ppk_podatek(self) -> Decimal:
+        return self.podstawa_ub_spolecznych * self.options.ppkPracodawca * self.rates.pod_doch[0]
 
     @override
-    def calculate_ub_zdrowotne(self) -> Decimal:
-        pass
-
-    @override
-    def calculate_ub_zdr_odl(self) -> Decimal:
-        pass
-
-    @override
-    def calculate_ppk_podatek(self) -> Decimal:
-        pass
-
-    @override
-    def calculate_zal_podatek(self) -> Decimal:
-        pass
-
-    @override
-    def calculate_potraceniai_wyplaty(self) -> Decimal:
-        pass
-
-    @override
-    def calculate_ppk_pracownik(self) -> Decimal:
-        pass
-
-    @override
-    def calculate_wynagrodzenie_netto(self) -> Decimal:
-        pass
-
-    @override
-    def calculate_prac_ub_emeryt(self) -> Decimal:
-        pass
-
-    @override
-    def calculate_prac_ub_rent(self)-> Decimal:
-        pass
-
-
-    @override
-    def calculate_prac_ub_wyp(self) -> Decimal:
-        pass
-
-
-    @override
-    def calculate_fp(self) -> Decimal:
-        pass
-
-
-    @override
-    def calculate_fgsp(self) -> Decimal:
-        pass
+    def _calculate_zal_podatek(self) -> Decimal:
+        return self.podatek + self.ppk_podatek
 
 
     @override
-    def calculate_ppk_pracodawca(self) -> Decimal:
-        pass
+    def _calculate_potracenia_wyplaty(self) -> Decimal:
+        return Decimal('0')
+
+    @override
+    def _calculate_ppk_pracownik(self) -> Decimal:
+        return self.podstawa_ub_spolecznych * self.options.ppkPracownik
+
+    @override
+    def _calculate_wynagrodzenie_netto(self) -> Decimal:
+        return self.wynagrodzenie_brutto - (
+                    self.ub_spol + self.zal_podatek + self.potracenia_wyplaty + self.ppk_pracownik+self.ub_zdrowotne)
+
+    @override
+    def _calculate_prac_ub_emeryt(self) -> Decimal:
+        suma_podst_spol= self.options.podstPodatekSum + self.podst_podatek
+
+        if suma_podst_spol  <= self.rates.ograniczenie_zus:
+            return self.podstawa_ub_spolecznych * self.rates.prac_ub_emeryt
+
+        elif suma_podst_spol - self.podstawa_ub_spolecznych > self.rates.ograniczenie_zus:
+            return Decimal('0')
+
+        else:
+            return self.podstawa_ub_spolecznych - (
+                suma_podst_spol - self.rates.ograniczenie_zus) * self.rates.prac_ub_emeryt
+
+    @override
+    def _calculate_prac_ub_rent(self)-> Decimal:
+        suma_podst_spol = self.options.podstPodatekSum + self.podst_podatek
+        if suma_podst_spol <= self.rates.ograniczenie_zus:
+            return self.podstawa_ub_spolecznych * self.rates.prac_ub_rent
+        elif suma_podst_spol - self.podstawa_ub_spolecznych > self.rates.ograniczenie_zus:
+            return Decimal('0')
+        else:
+            return self.podstawa_ub_spolecznych - (
+                    suma_podst_spol - self.rates.ograniczenie_zus) * self.rates.prac_ub_rent
 
 
     @override
-    def calculate_brutto_brutto(self) -> Decimal:
-        pass
+    def _calculate_prac_ub_wyp(self) -> Decimal:
+        return self.podstawa_ub_spolecznych * self.rates.prac_ub_wyp
+
+
+    @override
+    def _calculate_fp(self) -> Decimal:
+        if not self.options.FPFGSP:
+            return Decimal('0')
+        else:
+            if self.options.bruttoSumThisMonth + self.wynagrodzenie_brutto >= self.rates.placa_minimalna:
+                return self.podstawa_ub_spolecznych * self.rates.fp
+            else:
+                return Decimal('0')
+
+
+
+    @override
+    def _calculate_fgsp(self) -> Decimal:
+        if not self.options.FPFGSP:
+            return Decimal('0')
+        else:
+            return self.podstawa_ub_spolecznych * self.rates.fgsp
+
+    @override
+    def _calculate_ppk_pracodawca(self) -> Decimal:
+        return self.podstawa_ub_spolecznych*self.options.ppkPracodawca
+
+    @override
+    def _calculate_brutto_brutto(self) -> Decimal:
+        return self.wynagrodzenie_brutto+self.prac_ub_emeryt + self.prac_ub_rent + self.prac_ub_wyp+self.fp+self.fgsp
+
 
 
 def main() -> None:
-    umowa_o_prace_options = UmowaOPraceOptions().Builder().is_podwyzszone_koszty(True).set_koszty_fifty_ratio(Decimal('0.15')).is_dzialanosc(False).build()
-    print(umowa_o_prace_options)
-    rates_dict = {
-        'description': 'Descritpion',
-        'ub_emeryt': Decimal('9.00'),
-        'ub_rent': Decimal('9.60')
-    }
-    rates = Rates().from_dict(rates_dict)
-    rates.ograniczenie_zus = Decimal('0.33')
-    rates.ub_chor = Decimal('0.12')
+    umowa_o_prace_options = (UmowaOPraceOptions().builder().
+                             is_podwyzszone_koszty(True).
+                             set_koszty_fifty_ratio(Decimal('0.15')).
+                             is_dzialanosc(False).
+                             is_FPFGSP(True).
+                             build())
+
+    rates = Rates()
 
     wynagrodzenie = UmowaOPrace(rates)
     wynagrodzenie.set_options(umowa_o_prace_options)
-    wynagrodzenie.calculate(Decimal('3000'), SalaryType.Brutto)
-    print(wynagrodzenie.ub_emeryt)
+    wynagrodzenie.calculate(Decimal('4426.146'), SalaryType.Netto)
 
+    print(wynagrodzenie.get_rates())
+    print(wynagrodzenie.get_options())
+    for k,i in wynagrodzenie.get_all_output().items():
+        print(f'{k:20.20}: {i}')
+    print(wynagrodzenie.netto_ratio)
+    print(wynagrodzenie.suma_narzutow)
+    print(wynagrodzenie.suma_narzutow_ratio)
 if __name__ == '__main__':
     main()
