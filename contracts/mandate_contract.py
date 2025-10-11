@@ -1,12 +1,15 @@
 from decimal import Decimal
 from typing import override
+from unittest import case
+
 from rates.rates import Rates
-from opions.employment_contract_options import EmploymentContractOptions
+from opions.mandate_contract_options import MandateContractOptions, MandateContractType
 from salary.abstract_salary import AbstractSalary
 from salary.salary_utilities import SalaryUtilities
 
-class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
-    def __init__(self, rates: Rates, options: EmploymentContractOptions ) -> None:
+
+class MandateContract(AbstractSalary[MandateContractOptions]):
+    def __init__(self, rates: Rates, options: MandateContractOptions ) -> None:
         super().__init__(rates, options)
 
         if self.options.accident_insurance_rate is not None:
@@ -18,7 +21,7 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_sick_pay(self) -> Decimal:
-        return self.options.sick_pay
+        return Decimal('0.0')
 
     @override
     def _calculate_salary_gross(self) -> Decimal:
@@ -26,7 +29,16 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_social_security_base(self) -> Decimal:
-        return self.salary_base
+        match self.options.mandate_contract_type:
+            case MandateContractType.UNDER_26:
+                return Decimal('0.0')
+            case MandateContractType.COMMON:
+                return self.salary_base
+            case MandateContractType.THE_SAME_COMPANY:
+                return self.salary_base
+            case MandateContractType.OTHER_COMPANY_MIN_SALARY:
+                return Decimal('0.0')
+            case _: raise NotImplementedError('Unknown mandate contract type: ' + self.options.mandate_contract_type.name)
 
     @property
     def total_social_security_base_sum(self) -> Decimal:
@@ -34,38 +46,44 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_pension_insurance(self) -> Decimal:
-        return SalaryUtilities.calculate_pension_or_disability_insurance(
-            self.rates.pension_insurance_rate,
-            self.social_security_base,
-            self.options.social_security_base_sum,
-            self.rates.social_insurance_cap
-        )
-        # if self.total_social_security_base_sum <= self.rates.social_insurance_cap:
-        #     return self.social_security_base *self.rates.pension_insurance_rate
-        # elif self.total_social_security_base_sum - self.social_security_base > self.rates.social_insurance_cap:
-        #     return Decimal('0.0')
-        # else:
-        #     return (self.social_security_base - (self.total_social_security_base_sum - self.rates.social_insurance_cap))*self.rates.pension_insurance_rate
+        match self.options.mandate_contract_type:
+            case MandateContractType.UNDER_26 | MandateContractType.OTHER_COMPANY_MIN_SALARY:
+                return Decimal('0.0')
+            case MandateContractType.COMMON | MandateContractType.THE_SAME_COMPANY:
+                return SalaryUtilities.calculate_pension_or_disability_insurance(
+                    self.rates.pension_insurance_rate,
+                    self.social_security_base,
+                    self.options.social_security_base_sum,
+                    self.rates.social_insurance_cap
+                )
+            case _:
+                raise NotImplementedError('Unknown mandate contract type: ' + self.options.mandate_contract_type.name)
 
     @override
     def _calculate_disability_insurance(self) -> Decimal:
-        return SalaryUtilities.calculate_pension_or_disability_insurance(
-            self.rates.disability_insurance_rate,
-            self.social_security_base,
-            self.options.social_security_base_sum,
-            self.rates.social_insurance_cap
-        )
-        # if self.total_social_security_base_sum <= self.rates.social_insurance_cap:
-        #     return self.social_security_base * self.rates.disability_insurance_rate
-        # elif self.total_social_security_base_sum - self.social_security_base > self.rates.social_insurance_cap:
-        #     return Decimal('0.0')
-        # else:
-        #     return (self.social_security_base - (
-        #             self.total_social_security_base_sum - self.rates.social_insurance_cap)) * self.rates.disability_insurance_rate
+        match self.options.mandate_contract_type:
+            case MandateContractType.UNDER_26 | MandateContractType.OTHER_COMPANY_MIN_SALARY:
+                return Decimal('0.0')
+            case MandateContractType.COMMON | MandateContractType.THE_SAME_COMPANY:
+                return SalaryUtilities.calculate_pension_or_disability_insurance(
+                    self.rates.disability_insurance_rate,
+                    self.social_security_base,
+                    self.options.social_security_base_sum,
+                    self.rates.social_insurance_cap
+                )
+            case _:
+                raise NotImplementedError('Unknown mandate contract type: ' + self.options.mandate_contract_type.name)
 
     @override
     def _calculate_sickness_insurance(self) -> Decimal:
-        return self.social_security_base * self.rates.sickness_insurance_rate
+        match self.options.mandate_contract_type:
+            case MandateContractType.UNDER_26 | MandateContractType.OTHER_COMPANY_MIN_SALARY | MandateContractType.COMMON:
+                return Decimal('0.0')
+            case  MandateContractType.THE_SAME_COMPANY:
+                return self.social_security_base * self.rates.sickness_insurance_rate
+            case _:
+                raise NotImplementedError('Unknown mandate contract type: ' + self.options.mandate_contract_type.name)
+
 
     @override
     def _calculate_social_insurance_sum(self) -> Decimal:
@@ -76,34 +94,30 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
         #if self.podst_podatek * (1 - self.options.cost_fifty_ratio) - self._calculate_koszt_norm() < 0:
         #    return self.koszt_fifty + self.podst_podatek * (1 - self.options.cost_fifty_ratio)
         #else:
-        return self.author_rights_cost + self.regular_cost
+        if self.options.mandate_contract_type == MandateContractType.UNDER_26:
+            return self.regular_cost
+        else:
+            return self.author_rights_cost + self.regular_cost
 
     @override
     def _calculate_regular_cost(self) -> Decimal:
-        if self.options.increased_costs:
-            return self.rates.income_tax_deduction[1]
+        if self.options.is_a_lump_sum: return Decimal('0.0')
+
+        if not self.options.is_fifty:
+            return self.tax_base * self.rates.income_tax_deduction_20_50[0]
         else:
-            return self.rates.income_tax_deduction[0]
+            return Decimal('0.0')
 
     @override
     def _calculate_author_rights_cost(self) -> Decimal:
+        if not self.options.is_fifty: return Decimal('0.0')
         return SalaryUtilities.calculate_author_rights_cost(
-            self.rates.income_tax_deduction[1],
-            self.options.cost_fifty_ratio,
-            self.health_insurance_base,
-            self.options.cost_fifty_sum,
-            self.rates.cost_threshold
-        )
-        # if self.options.cost_fifty_ratio>0:
-        #     cost_fifty = self.rates.income_tax_deduction_20_50[1] * self.health_insurance_base * self.options.cost_fifty_ratio
-        #     cost_fifty_sum  = self.options.cost_fifty_sum +  cost_fifty
-        #     if cost_fifty_sum <= self.rates.cost_threshold:
-        #         return cost_fifty
-        #     elif cost_fifty_sum - cost_fifty <= self.rates.cost_threshold:
-        #         return self.rates.cost_threshold - cost_fifty_sum -  cost_fifty
-        #     else:
-        #         return Decimal('0.0')
-        # else: return Decimal('0.0')
+                self.rates.income_tax_deduction_20_50[1],
+                Decimal('1.0'),
+                self.health_insurance_base,
+                self.options.cost_fifty_sum,
+                self.rates.cost_threshold
+                )
 
     @property
     def cost_fifty_sum(self) -> Decimal:
@@ -111,6 +125,8 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_health_insurance_base(self) -> Decimal:
+        if self.options.mandate_contract_type == MandateContractType.UNDER_26:
+            return Decimal('0.0')
         return self.salary_gross - self.social_insurance_sum
 
     @override
@@ -127,27 +143,8 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_tax(self) -> Decimal:
-        if self.options.under_26: return Decimal('0.0')
-        #tax_base_sum = self.options.tax_base_sum + self.tax_base
-        if not self.options.active_business:
-            if self.tax_base_sum <= self.rates.tax_threshold:
-                out = self.tax_base * self.rates.income_tax[0] - self.rates.month_tax_free
-            elif self.tax_base_sum-self.tax_base <= self.rates.tax_threshold:
-                tax_1= (self.rates.tax_threshold - (self.tax_base_sum - self.tax_base)) * self.rates.income_tax[0] - self.rates.month_tax_free
-                tax_2= (self.tax_base_sum - self.rates.tax_threshold) * self.rates.income_tax[1]
-                out= tax_1+tax_2
-            else:
-                out= self.tax_base * self.rates.income_tax[1]
-        else:
-            if self.tax_base_sum <= self.rates.tax_threshold:
-                out= self.tax_base * self.rates.income_tax[0]
-            elif self.tax_base_sum-self.tax_base <=  self.rates.tax_threshold:
-                tax_1= (self.rates.tax_threshold - self.tax_base) * self.rates.income_tax[0]
-                tax_2= (self.tax_base_sum - self.rates.tax_threshold) * self.rates.income_tax[1]
-                out=tax_1+tax_2
-            else:
-                out= self.tax_base * self.rates.income_tax[1]
-
+        if self.options.mandate_contract_type == MandateContractType.UNDER_26: return Decimal('0.0')
+        out = self.tax_base * self.rates.income_tax[0]
         out += self.ppk_tax
         if out<=0: self.ppk_podatek = Decimal('0.0')
         return out if out > 0 else Decimal('0.0')
@@ -158,7 +155,8 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_ppk_tax(self) -> Decimal:
-        if self.options.under_26: return Decimal('0.0')
+        if self.options.mandate_contract_type == MandateContractType.UNDER_26 or MandateContractType.OTHER_COMPANY_MIN_SALARY:
+            return Decimal('0.0')
         return self.social_security_base * self.options.employer_ppk * self.rates.income_tax[0]
 
     @override
@@ -172,6 +170,8 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_employee_ppk_contribution(self) -> Decimal:
+        if self.options.mandate_contract_type == MandateContractType.UNDER_26 or MandateContractType.OTHER_COMPANY_MIN_SALARY:
+            return Decimal('0.0')
         return self.social_security_base * self.options.employee_ppk
 
     @override
@@ -187,17 +187,6 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
             self.options.social_security_base_sum,
             self.rates.social_insurance_cap
         )
-        # suma_podst_spol= self.options.tax_base_sum + self.tax_base
-        #
-        # if suma_podst_spol  <= self.rates.social_insurance_cap:
-        #     return self.social_security_base * self.rates.employer_pension_contribution_rate
-        #
-        # elif suma_podst_spol - self.social_security_base > self.rates.social_insurance_cap:
-        #     return Decimal('0')
-        #
-        # else:
-        #     return self.social_security_base - (
-        #         suma_podst_spol - self.rates.social_insurance_cap) * self.rates.employer_pension_contribution_rate
 
     @override
     def _calculate_disability_contribution(self)-> Decimal:
@@ -216,7 +205,7 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_fp(self) -> Decimal:
-        if not self.options.fp_fgsp:
+        if not self.options.fp:
             return Decimal('0')
         else:
             if self.options.current_month_gross_sum + self.salary_gross >= self.rates.minimum_wage:
@@ -228,13 +217,15 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_fgsp(self) -> Decimal:
-        if not self.options.fp_fgsp:
+        if not self.options.fgsp:
             return Decimal('0')
         else:
             return self.social_security_base * self.rates.fgsp_rate
 
     @override
     def _calculate_employer_ppk_contribution(self) -> Decimal:
+        if self.options.mandate_contract_type == MandateContractType.UNDER_26 or MandateContractType.OTHER_COMPANY_MIN_SALARY:
+            return Decimal('0.0')
         return self.social_security_base*self.options.employer_ppk
 
     @override

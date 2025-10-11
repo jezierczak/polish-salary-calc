@@ -1,6 +1,7 @@
 from typing import TypedDict, Unpack
 from decimal import Decimal
 from dataclasses import dataclass
+from typing import Self
 
 class RatesDict(TypedDict):
     description: str
@@ -59,8 +60,11 @@ class Rates:
     def month_tax_free(self) -> Decimal:
         return self.tax_free/12
     @classmethod
-    def from_dict(cls,data: Unpack[RatesDict]) -> "Rates":
+    def from_dict(cls,data: RatesDict) -> Self:
         return cls(**data)
+
+    def to_dict(self) -> Unpack[RatesDict]:
+        return self.__dict__
 
     def __getitem__(self, item: str) -> Decimal | str:
         return getattr(self, item)
@@ -71,10 +75,10 @@ class Rates:
         else:
             raise KeyError(f'Attribute {key} not found.')
 
-    def get_all(self) -> dict:
-        return self.__dict__
+    # def get_all(self) -> dict:
+    #     return self.__dict__
 
-def main() -> None:
+# def main() -> None:
     #rates_dict = {
     #                'description':'Descritpion',
     #                'ub_emeryt':Decimal('9.00'),
@@ -86,11 +90,11 @@ def main() -> None:
     #print(rates['ub_rent'])
     #print(rates.pod_doch)
 
-    rates = Rates()
-    for n,rate in rates.get_all().items():
-        print(f'{n:20.20} : {rate}')
-
-if __name__ == "__main__":
-    main()
+#     rates = Rates()
+#     for n,rate in rates.get_all().items():
+#         print(f'{n:20.20} : {rate}')
+#
+# if __name__ == "__main__":
+#     main()
 
 

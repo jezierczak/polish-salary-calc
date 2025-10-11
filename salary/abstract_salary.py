@@ -125,7 +125,7 @@ class AbstractSalary[T](ABC):
         pass
 
     @abstractmethod
-    def _calculate_potracenia_wyplaty(self) -> Decimal:
+    def _calculate_salary_deductions(self) -> Decimal:
         pass
 
     @abstractmethod
