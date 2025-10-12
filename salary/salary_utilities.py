@@ -35,3 +35,23 @@ class SalaryUtilities:
         else:
             return Decimal('0.0')
     #else: return Decimal('0.0')
+
+    @staticmethod
+    def calculate_tax(
+            income_tax: tuple[Decimal,Decimal],
+            tax_base: Decimal,
+            tax_base_sum: Decimal,
+            tax_threshold: Decimal,
+            month_tax_free: Decimal = Decimal('0.0'),
+        )-> Decimal:
+        tax_base_sum_total = tax_base_sum + tax_base
+        if tax_base_sum_total <= tax_threshold:
+            out = tax_base * income_tax[0] - month_tax_free
+        elif tax_base_sum_total - tax_base <= tax_threshold:
+            tax_1 = (tax_threshold - (tax_base_sum - tax_base)) * income_tax[0] - month_tax_free
+            tax_2 = (tax_base_sum - tax_threshold) * income_tax[1]
+            out = tax_1 + tax_2
+        else:
+            out = tax_base * income_tax[1]
+
+        return out

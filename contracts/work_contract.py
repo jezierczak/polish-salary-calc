@@ -1,12 +1,12 @@
 from decimal import Decimal
 from typing import override
+from opions.work_contract_options import WorkContractOptions
 from rates.rates import Rates
-from opions.employment_contract_options import EmploymentContractOptions
 from salary.abstract_salary import AbstractSalary
 from salary.salary_utilities import SalaryUtilities
 
-class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
-    def __init__(self, rates: Rates, options: EmploymentContractOptions ) -> None:
+class WorkContract(AbstractSalary[WorkContractOptions]):
+    def __init__(self, rates: Rates, options: WorkContractOptions ) -> None:
         super().__init__(rates, options)
 
     @override
@@ -15,7 +15,7 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_sick_pay(self) -> Decimal:
-        return self.options.sick_pay
+        return Decimal('0.0')
 
     @override
     def _calculate_salary_gross(self) -> Decimal:
@@ -23,7 +23,7 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_social_security_base(self) -> Decimal:
-        return super()._calculate_social_security_base()
+        return Decimal('0.0')
 
     # @override
     # def _calculate_social_security_base_total(self) -> Decimal:
@@ -31,7 +31,7 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_pension_insurance(self) -> Decimal:
-        return super()._calculate_pension_insurance()
+        return Decimal('0.0')
         # if self.total_social_security_base_sum <= self.rates.social_insurance_cap:
         #     return self.social_security_base *self.rates.pension_insurance_rate
         # elif self.total_social_security_base_sum - self.social_security_base > self.rates.social_insurance_cap:
@@ -41,11 +41,11 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_disability_insurance(self) -> Decimal:
-        return super()._calculate_disability_insurance()
+        return Decimal('0.0')
 
     @override
     def _calculate_sickness_insurance(self) -> Decimal:
-        return super()._calculate_sickness_insurance()
+        return Decimal('0.0')
 
     # @override
     # def _calculate_social_insurance_sum(self) -> Decimal:
@@ -60,24 +60,23 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_regular_cost(self) -> Decimal:
-        if self.options.increased_costs:
-            return self.rates.income_tax_deduction[1]
+        if self.options.is_a_lump_sum: return Decimal('0.0')
+
+        if not self.options.is_fifty:
+            return self.health_insurance_base * self.rates.income_tax_deduction_20_50[0]
         else:
-            return self.rates.income_tax_deduction[0]
+            return Decimal('0.0')
 
     @override
     def _calculate_author_rights_cost(self) -> Decimal:
+        if not self.options.is_fifty: return Decimal('0.0')
         return SalaryUtilities.calculate_author_rights_cost(
-            self.rates.income_tax_deduction[1],
-            self.options.cost_fifty_ratio,
-            self.health_insurance_base,
-            self.options.cost_fifty_sum,
-            self.rates.cost_threshold
-        )
-
-    # @property
-    # def cost_fifty_sum(self) -> Decimal:
-    #     return self.options.cost_fifty_sum + self.author_rights_cost
+                self.rates.income_tax_deduction_20_50[1],
+                Decimal('1.0'),
+                self.health_insurance_base,
+                self.options.cost_fifty_sum,
+                self.rates.cost_threshold
+                )
 
     @override
     def _calculate_health_insurance_base(self) -> Decimal:
@@ -97,35 +96,11 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_tax(self) -> Decimal:
-        if self.options.under_26: return Decimal('0.0')
-        if not self.options.active_business:
-            out = SalaryUtilities.calculate_tax(
-                self.rates.income_tax,
-                self.tax_base,
-                self.options.tax_base_sum,
-                self.rates.tax_threshold,
-                self.rates.month_tax_free
-            )
-        else:
-            out = SalaryUtilities.calculate_tax(
-                self.rates.income_tax,
-                self.tax_base,
-                self.options.tax_base_sum,
-                self.rates.tax_threshold
-            )
-        return out
-        # out += self.ppk_tax
-        # if out<=0: self.ppk_podatek = Decimal('0.0')
-        # return out if out > 0 else Decimal('0.0')
-
-    #@override
-    #def _calculate_ub_zdr_odl(self) -> Decimal:
-    #    pass
+        return self.tax_base * self.rates.income_tax[0]
 
     @override
     def _calculate_ppk_tax(self) -> Decimal:
-        if self.options.under_26: return Decimal('0.0')
-        return super()._calculate_ppk_tax()
+        return Decimal('0.0')
 
     # @override
     # def _calculate_tax_advance_payment(self) -> Decimal:
@@ -138,7 +113,7 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_employee_ppk_contribution(self) -> Decimal:
-        return super()._calculate_employee_ppk_contribution()
+        return Decimal('0.0')
 
     @override
     def _calculate_net_salary(self) -> Decimal:
@@ -159,23 +134,17 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_fp(self) -> Decimal:
-        if not self.options.fp_fgsp:
-            return Decimal('0')
-        else:
             return super()._calculate_fp()
 
 
 
     @override
     def _calculate_fgsp(self) -> Decimal:
-        if not self.options.fp_fgsp:
-            return Decimal('0')
-        else:
             return super()._calculate_fgsp()
 
     @override
     def _calculate_employer_ppk_contribution(self) -> Decimal:
-        return super()._calculate_employer_ppk_contribution()
+        return Decimal('0.0')
 
     @override
     def _calculate_total_employer_cost(self) -> Decimal:

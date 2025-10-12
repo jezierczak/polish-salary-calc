@@ -1,0 +1,68 @@
+
+from salary.abstract_salary_options import AbstractSalaryOptions
+from typing import TypedDict,Self
+from dataclasses import dataclass
+from decimal import Decimal
+
+class WorkContractOptionsDict(TypedDict):
+    is_fifty: bool
+    is_a_lump_sum:bool #ryczałt
+    # current_month_gross_sum: Decimal
+    social_security_base_sum: Decimal
+    cost_fifty_sum: Decimal
+    tax_base_sum: Decimal
+    # employee_ppk: Decimal
+    # employer_ppk: Decimal
+    # accident_insurance_rate: Decimal | None
+    salary_deductions: Decimal
+
+@dataclass
+class WorkContractOptions(AbstractSalaryOptions):
+    is_fifty: bool = False
+    is_a_lump_sum: bool = False
+
+    @classmethod
+    def from_dict(cls, data: WorkContractOptionsDict) -> Self:
+        return cls(**data)
+
+    @classmethod
+    def builder(cls) -> 'Builder':
+        return cls.Builder()
+
+    class Builder:
+        def __init__(self):
+            self._options = WorkContractOptions()
+
+        def is_fifty(self, is_fifty: bool) -> Self:
+            self._options.is_fifty = is_fifty
+            return self
+
+        def  is_a_lump_sum(self,  is_a_lump_sum: bool) -> Self:
+            self._options. is_a_lump_sum =  is_a_lump_sum
+            return self
+        # def set_current_month_gross_sum(self, current_month_gross_sum: Decimal) -> Self:
+        #     self._options.current_month_gross_sum = current_month_gross_sum
+        #     return self
+        def set_social_security_base_sum(self, social_security_base_sum: Decimal) -> Self:
+            self._options.social_security_base_sum = social_security_base_sum
+            return self
+        def set_cost_fifty_sum(self, cost_fifty_sum: Decimal) -> Self:
+            self._options.cost_fifty_sum = cost_fifty_sum
+            return self
+        def set_tax_base_sum(self, tax_base_sum: Decimal) -> Self:
+            self._options.tax_base_sum = tax_base_sum
+            return self
+        # def set_employee_ppk(self, employee_ppk: Decimal) -> Self:
+        #     self._options.employee_ppk = employee_ppk
+        #     return self
+        # def set_employer_ppk(self, employer_ppk: Decimal) -> Self:
+        #     self._options.employer_ppk = employer_ppk
+        #     return self
+        # def set_accident_insurance_rate(self, accident_insurance_rate: Decimal | None) -> Self:
+        #     self._options.accident_insurance_rate = accident_insurance_rate
+        #     return self
+        def set_salary_deductions(self, salary_deductions: Decimal) -> Self:
+            self._options.salary_deductions = salary_deductions
+            return self
+        def build(self) -> 'WorkContractOptions':
+            return self._options

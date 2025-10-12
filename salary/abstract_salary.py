@@ -1,13 +1,16 @@
+from salary.abstract_salary_options import AbstractSalaryOptions
 from decimal import Decimal
 from abc import ABC, abstractmethod
 from enum import Enum
 from rates.rates import Rates
+from salary.salary_utilities import SalaryUtilities
+
 
 class SalaryType(Enum):
     GROSS = 1
     NET = 2
 
-class AbstractSalary[T](ABC):
+class AbstractSalary[T: AbstractSalaryOptions](ABC):
     def __init__(self, rates: Rates, options: T) -> None:
         self.rates: Rates = rates
         self.options: T  = options
@@ -19,21 +22,24 @@ class AbstractSalary[T](ABC):
         #self.koszt_dzialalnosc: Decimal= Decimal('0.0')
         self.salary_gross: Decimal= Decimal('0.0')  #brutto
         self.social_security_base: Decimal= Decimal('0.0') #podst ub społ
+        self.social_security_base_total: Decimal= Decimal('0.0')
         self.pension_insurance: Decimal= Decimal('0.0') #ub emeryt
         self.disability_insurance: Decimal= Decimal('0.0') #ub rent
         self.sickness_insurance: Decimal= Decimal('0.0') #chorobowe
         self.social_insurance_sum: Decimal= Decimal('0.0') #uma ub społ
         self.cost: Decimal= Decimal('0.0')
+        self.cost_fifty_total: Decimal= Decimal('0.0')
         self.regular_cost: Decimal= Decimal('0.0')
         self.author_rights_cost: Decimal= Decimal('0.0') #koszt praw autorskich (50%)
         self.health_insurance_base: Decimal= Decimal('0.0') #podst zdrowotne
         self.tax_base: Decimal= Decimal('0.0') #podstawa podatku
+        self.tax_base_total = Decimal('0.0')
         self.tax: Decimal= Decimal('0.0') # podatek
         self.health_insurance: Decimal= Decimal('0.0')
         #self.ub_zdr_odl: Decimal= Decimal('0.0')
         self.ppk_tax: Decimal= Decimal('0.0')
         self.tax_advance_payment: Decimal= Decimal('0.0') #zaliczka podatku
-        #self.salary_deductions: Decimal= Decimal('0.0') #potrącenia wypłaty
+        self.salary_deductions: Decimal= Decimal('0.0') #potrącenia wypłaty
         self.employee_ppk_contribution: Decimal= Decimal('0.0')
         self.net_salary: Decimal= Decimal('0.0')
         self.employer_pension_contribution: Decimal= Decimal('0.0') #ub emeryt prac
@@ -46,15 +52,21 @@ class AbstractSalary[T](ABC):
 
         self.is_calculated: bool = False
 
+        if self.options.accident_insurance_rate is None:
+            self.options.accident_insurance_rate = self.rates.accident_insurance_rate
+
     def update_rates(self, rates: Rates) -> None:
         self.rates = rates
 
     def update_options(self, options: T) -> None:
         self.options = options
 
+        if self.options.accident_insurance_rate is None:
+            self.options.accident_insurance_rate = self.rates.accident_insurance_rate
+
     @abstractmethod
     def _calculate_salary_base(self) -> Decimal:
-        pass
+        return self.input_salary
 
     @abstractmethod
     def _calculate_sick_pay(self) -> Decimal:
@@ -62,31 +74,45 @@ class AbstractSalary[T](ABC):
 
     @abstractmethod
     def _calculate_salary_gross(self) -> Decimal:
-        pass
+        return self.salary_base+self.salary_sick_pay
 
     @abstractmethod
     def _calculate_social_security_base(self) -> Decimal:
-        pass
+        return self.salary_base
+
+
+    def _calculate_social_security_base_total(self) -> Decimal:
+        return self.options.social_security_base_sum + self.social_security_base
 
     @abstractmethod
     def _calculate_pension_insurance(self) -> Decimal:
-        pass
+        return SalaryUtilities.calculate_pension_or_disability_insurance(
+            self.rates.pension_insurance_rate,
+            self.social_security_base,
+            self.options.social_security_base_sum,
+            self.rates.social_insurance_cap
+        )
 
     @abstractmethod
     def _calculate_disability_insurance(self) -> Decimal:
-        pass
+        return SalaryUtilities.calculate_pension_or_disability_insurance(
+            self.rates.disability_insurance_rate,
+            self.social_security_base,
+            self.options.social_security_base_sum,
+            self.rates.social_insurance_cap
+        )
 
     @abstractmethod
     def _calculate_sickness_insurance(self) -> Decimal:
-        pass
+        return self.social_security_base * self.rates.sickness_insurance_rate
 
-    @abstractmethod
+
     def _calculate_social_insurance_sum(self) -> Decimal:
-        pass
+        return self.pension_insurance + self.disability_insurance + self.sickness_insurance
 
     @abstractmethod
     def _calculate_cost(self) -> Decimal:
-        pass
+        return self.author_rights_cost + self.regular_cost
 
     @abstractmethod
     def _calculate_regular_cost(self) -> Decimal:
@@ -96,21 +122,32 @@ class AbstractSalary[T](ABC):
     def _calculate_author_rights_cost(self) -> Decimal:
         pass
 
+    def _calculate_cost_fifty_total(self) -> Decimal:
+        return self.options.cost_fifty_sum + self.author_rights_cost
+
     @abstractmethod
     def _calculate_health_insurance_base(self) -> Decimal:
-        pass
+        return self.salary_gross - (self.pension_insurance + self.disability_insurance + self.sickness_insurance)
+
+    @abstractmethod
+    def _calculate_health_insurance(self) -> Decimal:
+        return self.health_insurance_base * self.rates.health_insurance_rate
 
     @abstractmethod
     def _calculate_tax_base(self) -> Decimal:
-        pass
+        return self.salary_gross - self.social_insurance_sum - self.cost
+
+    def _calculate_tax_base_total(self)  ->Decimal:
+        return self.options.tax_base_sum + self.tax_base
 
     @abstractmethod
     def _calculate_tax(self) -> Decimal:
         pass
 
-    @abstractmethod
-    def _calculate_health_insurance(self) -> Decimal:
-        pass
+    def _add_ppk_tax_and_check_if_is_positive(self,input_tax: Decimal) -> Decimal:
+        input_tax += self.ppk_tax
+        if input_tax<=0: self.ppk_podatek = Decimal('0.0')
+        return input_tax if input_tax > 0 else Decimal('0.0')
 
     #@abstractmethod
     #def _calculate_ub_zdr_odl(self) -> Decimal:
@@ -118,51 +155,67 @@ class AbstractSalary[T](ABC):
 
     @abstractmethod
     def _calculate_ppk_tax(self) -> Decimal:
-        pass
+        return self.social_security_base * self.options.employer_ppk * self.rates.income_tax[0]
 
-    @abstractmethod
+
     def _calculate_tax_advance_payment(self) -> Decimal:
-        pass
+        return self.tax
 
     @abstractmethod
     def _calculate_salary_deductions(self) -> Decimal:
-        pass
+        return self.options.salary_deductions
 
     @abstractmethod
     def _calculate_employee_ppk_contribution(self) -> Decimal:
-        pass
+        return self.social_security_base * self.options.employee_ppk
 
     @abstractmethod
     def _calculate_net_salary(self) -> Decimal:
-        pass
+        return self.salary_gross - (
+                self.social_insurance_sum + self.tax_advance_payment + self.employee_ppk_contribution + self.health_insurance + self.salary_deductions)
 
     @abstractmethod
     def _calculate_pension_contribution(self) -> Decimal:
-        pass
+        return SalaryUtilities.calculate_pension_or_disability_insurance(
+            self.rates.employer_pension_contribution_rate,
+            self.social_security_base,
+            self.options.social_security_base_sum,
+            self.rates.social_insurance_cap
+        )
 
     @abstractmethod
     def _calculate_disability_contribution(self) -> Decimal:
-        pass
+        return SalaryUtilities.calculate_pension_or_disability_insurance(
+            self.rates.employer_disability_contribution_rate,
+            self.social_security_base,
+            self.options.social_security_base_sum,
+            self.rates.social_insurance_cap
+        )
 
     @abstractmethod
     def _calculate_accident_insurance(self) -> Decimal:
-        pass
+        if self.options.accident_insurance_rate is None:
+            return  self.social_security_base * self.rates.accident_insurance_rate
+        return self.social_security_base * self.options.accident_insurance_rate
 
     @abstractmethod
     def _calculate_fp(self) -> Decimal:
-        pass
+        if self.options.current_month_gross_sum + self.salary_gross >= self.rates.minimum_wage:
+            return self.social_security_base * self.rates.fp_rate
+        else:
+            return Decimal('0')
 
     @abstractmethod
     def _calculate_fgsp(self) -> Decimal:
-        pass
+        return self.social_security_base * self.rates.fgsp_rate
 
     @abstractmethod
     def _calculate_employer_ppk_contribution(self) -> Decimal:
-        pass
+        return self.social_security_base*self.options.employer_ppk
 
     @abstractmethod
     def _calculate_total_employer_cost(self) -> Decimal:
-        pass
+        return self.salary_gross + self.employer_pension_contribution + self.employer_disability_contribution + self.accident_insurance + self.fp + self.fgsp + self.employer_ppk_contribution
 
     @property
     def total_markups(self) -> Decimal:
@@ -214,29 +267,33 @@ class AbstractSalary[T](ABC):
         self.salary_sick_pay = self._calculate_sick_pay().quantize(Decimal('0.01'))
         self.salary_gross= self._calculate_salary_gross().quantize(Decimal('0.01'))
         self.social_security_base = self._calculate_social_security_base().quantize(Decimal('0.01'))
+        self.social_security_base_total = self._calculate_social_security_base_total().quantize(Decimal('0.01'))
         self.pension_insurance = self._calculate_pension_insurance().quantize(Decimal('0.01'))
         self.disability_insurance = self._calculate_disability_insurance().quantize(Decimal('0.01'))
         self.sickness_insurance = self._calculate_sickness_insurance().quantize(Decimal('0.01'))
-        self.social_insurance_sum = self._calculate_social_insurance_sum().quantize(Decimal('0.01'))
+
         self.health_insurance_base = self._calculate_health_insurance_base().quantize(Decimal('0.01'))
         self.regular_cost = self._calculate_regular_cost().quantize(Decimal('0.01'))
         self.author_rights_cost = self._calculate_author_rights_cost().quantize(Decimal('0.01'))
         self.cost = self._calculate_cost().quantize(Decimal('0.01'))
+        self.cost_fifty_total = self._calculate_cost_fifty_total().quantize(Decimal('0.01'))
         self.tax_base = self._calculate_tax_base().quantize(Decimal('0.01'))
+        self.tax_base_total = self._calculate_tax_base_total().quantize(Decimal('0.01'))
         self.ppk_tax = self._calculate_ppk_tax().quantize(Decimal('0.01'))
-        self.tax = self._calculate_tax().quantize(Decimal('0.01'))
+        self.tax = self._add_ppk_tax_and_check_if_is_positive(self._calculate_tax()).quantize(Decimal('0.01'))
         self.health_insurance = self._calculate_health_insurance().quantize(Decimal('0.01'))
         #self.ub_zdr_odl = self._calculate_ub_zdr_odl()
-
+        self.salary_deductions = self._calculate_salary_deductions().quantize(Decimal('0.01'))
         self.tax_advance_payment = self._calculate_tax_advance_payment().quantize(Decimal('1'))
         self.employee_ppk_contribution = self._calculate_employee_ppk_contribution().quantize(Decimal('0.01'))
-        self.net_salary = self._calculate_net_salary().quantize(Decimal('0.01'))
         self.employer_pension_contribution = self._calculate_pension_contribution().quantize(Decimal('0.01'))
         self.employer_disability_contribution = self._calculate_disability_contribution().quantize(Decimal('0.01'))
         self.accident_insurance = self._calculate_accident_insurance().quantize(Decimal('0.01'))
         self.fp = self._calculate_fp().quantize(Decimal('0.01'))
         self.fgsp = self._calculate_fgsp().quantize(Decimal('0.01'))
         self.employer_ppk_contribution = self._calculate_employer_ppk_contribution().quantize(Decimal('0.01'))
+        self.social_insurance_sum = self._calculate_social_insurance_sum().quantize(Decimal('0.01'))
+        self.net_salary = self._calculate_net_salary().quantize(Decimal('0.01'))
         self.total_employer_cost = self._calculate_total_employer_cost().quantize(Decimal('0.01'))
 
 

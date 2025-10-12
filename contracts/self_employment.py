@@ -1,12 +1,12 @@
 from decimal import Decimal
 from typing import override
 from rates.rates import Rates
-from opions.employment_contract_options import EmploymentContractOptions
+from opions.self_employment_options import SelfEmploymentOptions,SelfEmploymentType
 from salary.abstract_salary import AbstractSalary
 from salary.salary_utilities import SalaryUtilities
 
-class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
-    def __init__(self, rates: Rates, options: EmploymentContractOptions ) -> None:
+class SelfEmployment(AbstractSalary[SelfEmploymentOptions]):
+    def __init__(self, rates: Rates, options: SelfEmploymentOptions ) -> None:
         super().__init__(rates, options)
 
     @override
@@ -15,15 +15,32 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_sick_pay(self) -> Decimal:
-        return self.options.sick_pay
+        return Decimal('0.0')
 
     @override
     def _calculate_salary_gross(self) -> Decimal:
-        return super()._calculate_salary_gross()
+        return self.salary_base - self.options.costs
 
     @override
     def _calculate_social_security_base(self) -> Decimal:
-        return super()._calculate_social_security_base()
+        social_base = Decimal('0.0')
+        match self.options.self_employment_type:
+            case SelfEmploymentType.COMMON:
+                if not self.options.other_minimum_contract:
+                    social_base = self.rates.standard_social_insurance_base
+            case SelfEmploymentType.PREFERRED:
+                if not self.options.other_minimum_contract:
+                    social_base = self.rates.reduced_social_insurance_base
+            case SelfEmploymentType.STARTUP_RELIEF | SelfEmploymentType.UNREGISTERED_BUSINESS:
+                    social_base = Decimal('0.0')
+            #case SelfEmploymentType.SMALL_ZUS:
+            case _:
+                raise NotImplementedError('Unknown self employment type: ' + self.options.self_employment_type.name)
+
+        if self.options.is_sick_pay and self.options.sick_pay_days > 0 and self.options.month_days > 0:
+            social_base = social_base * (self.options.month_days - self.options.sick_pay_days) / self.options.month_days
+
+        return social_base
 
     # @override
     # def _calculate_social_security_base_total(self) -> Decimal:
@@ -31,7 +48,12 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_pension_insurance(self) -> Decimal:
-        return super()._calculate_pension_insurance()
+        return SalaryUtilities.calculate_pension_or_disability_insurance(
+            self.rates.pension_insurance_rate+self.rates.employer_pension_contribution_rate,
+            self.social_security_base,
+            self.options.social_security_base_sum,
+            self.rates.social_insurance_cap
+        )
         # if self.total_social_security_base_sum <= self.rates.social_insurance_cap:
         #     return self.social_security_base *self.rates.pension_insurance_rate
         # elif self.total_social_security_base_sum - self.social_security_base > self.rates.social_insurance_cap:
@@ -41,15 +63,23 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_disability_insurance(self) -> Decimal:
-        return super()._calculate_disability_insurance()
+        return SalaryUtilities.calculate_pension_or_disability_insurance(
+            self.rates.disability_insurance_rate+self.rates.employer_disability_contribution_rate,
+            self.social_security_base,
+            self.options.social_security_base_sum,
+            self.rates.social_insurance_cap
+        )
 
     @override
     def _calculate_sickness_insurance(self) -> Decimal:
-        return super()._calculate_sickness_insurance()
+        if self.options.is_sick_pay:
+            return super()._calculate_sickness_insurance()
+        else:
+            return Decimal('0.0')
 
-    # @override
-    # def _calculate_social_insurance_sum(self) -> Decimal:
-    #     return self.pension_insurance + self.disability_insurance + self.sickness_insurance
+    @override
+    def _calculate_social_insurance_sum(self) -> Decimal:
+        return self.pension_insurance + self.disability_insurance + self.sickness_insurance + self.accident_insurance+self.fp
 
     @override
     def _calculate_cost(self) -> Decimal:
@@ -60,20 +90,11 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_regular_cost(self) -> Decimal:
-        if self.options.increased_costs:
-            return self.rates.income_tax_deduction[1]
-        else:
-            return self.rates.income_tax_deduction[0]
+        return self.options.costs
 
     @override
     def _calculate_author_rights_cost(self) -> Decimal:
-        return SalaryUtilities.calculate_author_rights_cost(
-            self.rates.income_tax_deduction[1],
-            self.options.cost_fifty_ratio,
-            self.health_insurance_base,
-            self.options.cost_fifty_sum,
-            self.rates.cost_threshold
-        )
+        return Decimal('0.0')
 
     # @property
     # def cost_fifty_sum(self) -> Decimal:
@@ -81,7 +102,11 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_health_insurance_base(self) -> Decimal:
-        return super()._calculate_health_insurance_base()
+        min_base = self.rates.health_insurance_base
+
+        return min_base
+    #TODO podstawa zdrowotnego minimum to idzie ze stawek ale ona jest zależna od zysku a zysk jest liczony później i
+    #byćmoże nie da się tego tak obliczyć jak chcę
 
     @override
     def _calculate_health_insurance(self) -> Decimal:
@@ -89,7 +114,7 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_tax_base(self) -> Decimal:
-        return super()._calculate_tax_base()
+        return self.salary_gross - self.social_insurance_sum
 
     # @property
     # def tax_base_sum(self)  ->Decimal:
@@ -97,21 +122,11 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_tax(self) -> Decimal:
-        if self.options.under_26: return Decimal('0.0')
-        if not self.options.active_business:
-            out = SalaryUtilities.calculate_tax(
-                self.rates.income_tax,
-                self.tax_base,
-                self.options.tax_base_sum,
-                self.rates.tax_threshold,
-                self.rates.month_tax_free
-            )
-        else:
-            out = SalaryUtilities.calculate_tax(
-                self.rates.income_tax,
-                self.tax_base,
-                self.options.tax_base_sum,
-                self.rates.tax_threshold
+        out = SalaryUtilities.calculate_tax(
+            self.rates.income_tax,
+            self.tax_base,
+            self.options.tax_base_sum,
+            self.rates.tax_threshold
             )
         return out
         # out += self.ppk_tax
@@ -124,8 +139,7 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_ppk_tax(self) -> Decimal:
-        if self.options.under_26: return Decimal('0.0')
-        return super()._calculate_ppk_tax()
+        return Decimal('0.0')
 
     # @override
     # def _calculate_tax_advance_payment(self) -> Decimal:
@@ -138,18 +152,23 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_employee_ppk_contribution(self) -> Decimal:
-        return super()._calculate_employee_ppk_contribution()
+        return Decimal('0.0')
 
     @override
     def _calculate_net_salary(self) -> Decimal:
-        return super()._calculate_net_salary()
+        return super()._calculate_net_salary() - (self.employer_pension_contribution +
+                                                  self.employer_disability_contribution +
+                                                  self.accident_insurance+
+                                                  self.fp+self.fgsp+
+                                                  self.employer_ppk_contribution)
+
     @override
     def _calculate_pension_contribution(self) -> Decimal:
-        return super()._calculate_pension_contribution()
+        return Decimal('0.0')
 
     @override
     def _calculate_disability_contribution(self)-> Decimal:
-        return super()._calculate_disability_contribution()
+        return Decimal('0.0')
 
 
     @override
@@ -159,7 +178,7 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_fp(self) -> Decimal:
-        if not self.options.fp_fgsp:
+        if not self.options.is_fp:
             return Decimal('0')
         else:
             return super()._calculate_fp()
@@ -168,16 +187,15 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
 
     @override
     def _calculate_fgsp(self) -> Decimal:
-        if not self.options.fp_fgsp:
-            return Decimal('0')
-        else:
-            return super()._calculate_fgsp()
+        return Decimal('0.0')
 
     @override
     def _calculate_employer_ppk_contribution(self) -> Decimal:
-        return super()._calculate_employer_ppk_contribution()
+        return Decimal('0.0')
 
     @override
     def _calculate_total_employer_cost(self) -> Decimal:
-        return super()._calculate_total_employer_cost()
+        return self.salary_gross
+
+
 

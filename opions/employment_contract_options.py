@@ -1,4 +1,5 @@
-from typing import TypedDict,Unpack,Self
+from salary.abstract_salary_options import AbstractSalaryOptions
+from typing import TypedDict,Self
 from dataclasses import dataclass
 from decimal import Decimal
 
@@ -16,22 +17,23 @@ class EmploymentContractDict(TypedDict):
     employee_ppk: Decimal
     employer_ppk: Decimal
     accident_insurance_rate: Decimal | None
+    salary_deductions: Decimal
 
 @dataclass
-class EmploymentContractOptions:
+class EmploymentContractOptions(AbstractSalaryOptions):
     increased_costs: bool = False
     cost_fifty_ratio: Decimal = Decimal('0.0')
     fp_fgsp: bool = False
     active_business: bool = False
     under_26: bool = False
     sick_pay: Decimal = Decimal('0.0')
-    current_month_gross_sum: Decimal = Decimal('0.0')
-    social_security_base_sum: Decimal = Decimal('0.0')
-    cost_fifty_sum: Decimal = Decimal('0.0')
-    tax_base_sum: Decimal = Decimal('0.0')
-    employee_ppk: Decimal = Decimal('0.0')
-    employer_ppk: Decimal = Decimal('0.0')
-    accident_insurance_rate: Decimal | None = None
+    # current_month_gross_sum: Decimal = Decimal('0.0')
+    # social_security_base_sum: Decimal = Decimal('0.0')
+    # cost_fifty_sum: Decimal = Decimal('0.0')
+    # tax_base_sum: Decimal = Decimal('0.0')
+    # employee_ppk: Decimal = Decimal('0.0')
+    # employer_ppk: Decimal = Decimal('0.0')
+    # accident_insurance_rate: Decimal | None = None
 
     @classmethod
     def from_dict(cls, data: EmploymentContractDict) -> Self:
@@ -40,6 +42,7 @@ class EmploymentContractOptions:
     @classmethod
     def builder(cls) -> 'Builder':
         return cls.Builder()
+
 
     class Builder:
         def __init__(self):
@@ -83,6 +86,9 @@ class EmploymentContractOptions:
             return self
         def set_accident_insurance_rate(self, accident_insurance_rate: Decimal | None) -> Self:
             self._options.accident_insurance_rate = accident_insurance_rate
+            return self
+        def set_salary_deductions(self, salary_deductions: Decimal) -> Self:
+            self._options.salary_deductions = salary_deductions
             return self
         def build(self) -> 'EmploymentContractOptions':
             return self._options

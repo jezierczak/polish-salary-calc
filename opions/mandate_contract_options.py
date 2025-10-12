@@ -1,4 +1,6 @@
-from typing import TypedDict,Unpack,Self
+
+from salary.abstract_salary_options import AbstractSalaryOptions
+from typing import TypedDict,Self
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
@@ -22,21 +24,22 @@ class MandateContractOptionsDict(TypedDict):
     employee_ppk: Decimal
     employer_ppk: Decimal
     accident_insurance_rate: Decimal | None
+    salary_deductions: Decimal
 
 @dataclass
-class MandateContractOptions:
+class MandateContractOptions(AbstractSalaryOptions):
     mandate_contract_type: MandateContractType = MandateContractType.COMMON
     is_fifty: bool = False
     fp: bool = False
     fgsp: bool = False
     is_a_lump_sum: bool = False
-    current_month_gross_sum: Decimal = Decimal('0.0')
-    social_security_base_sum: Decimal = Decimal('0.0')
-    cost_fifty_sum: Decimal = Decimal('0.0')
-    tax_base_sum: Decimal = Decimal('0.0')
-    employee_ppk: Decimal = Decimal('0.0')
-    employer_ppk: Decimal = Decimal('0.0')
-    accident_insurance_rate: Decimal | None = None
+    # current_month_gross_sum: Decimal = Decimal('0.0')
+    # social_security_base_sum: Decimal = Decimal('0.0')
+    # cost_fifty_sum: Decimal = Decimal('0.0')
+    # tax_base_sum: Decimal = Decimal('0.0')
+    # employee_ppk: Decimal = Decimal('0.0')
+    # employer_ppk: Decimal = Decimal('0.0')
+    # accident_insurance_rate: Decimal | None = None
 
 
     @classmethod
@@ -87,6 +90,9 @@ class MandateContractOptions:
             return self
         def set_accident_insurance_rate(self, accident_insurance_rate: Decimal | None) -> Self:
             self._options.accident_insurance_rate = accident_insurance_rate
+            return self
+        def set_salary_deductions(self, salary_deductions: Decimal) -> Self:
+            self._options.salary_deductions = salary_deductions
             return self
         def build(self) -> 'MandateContractOptions':
             return self._options
