@@ -1,4 +1,4 @@
-from salary.abstract_salary_options import AbstractSalaryOptions
+from polish_salary_calc.salary.abstract_salary_options import AbstractSalaryOptions
 from typing import TypedDict,Self
 from dataclasses import dataclass
 from decimal import Decimal
@@ -40,11 +40,11 @@ class EmploymentContractOptions(AbstractSalaryOptions):
         return cls(**data)
 
     @classmethod
-    def builder(cls) -> 'Builder':
-        return cls.Builder()
+    def builder(cls) -> 'OptionsBuilder':
+        return cls.OptionsBuilder()
 
 
-    class Builder:
+    class OptionsBuilder:
         def __init__(self):
             self._options = EmploymentContractOptions()
 

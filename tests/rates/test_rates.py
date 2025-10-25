@@ -1,5 +1,5 @@
 import pytest
-from rates.rates import Rates,RatesDict
+from polish_salary_calc.rates.rates import Rates,RatesDict
 
 def test_rates_default(rates_default: Rates) -> None:
     assert isinstance(rates_default, Rates)

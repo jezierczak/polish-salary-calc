@@ -1,9 +1,9 @@
 from decimal import Decimal
 from typing import override
-from rates.rates import Rates
-from opions.self_employment_options import SelfEmploymentOptions,SelfEmploymentType
-from salary.abstract_salary import AbstractSalary
-from salary.salary_utilities import SalaryUtilities
+from polish_salary_calc.rates.rates import Rates
+from polish_salary_calc.opions.self_employment_options import SelfEmploymentOptions,SelfEmploymentType
+from polish_salary_calc.salary.abstract_salary import AbstractSalary
+from polish_salary_calc.salary.salary_utilities import SalaryUtilities
 
 class SelfEmployment(AbstractSalary[SelfEmploymentOptions]):
     def __init__(self, rates: Rates, options: SelfEmploymentOptions ) -> None:
@@ -106,7 +106,7 @@ class SelfEmployment(AbstractSalary[SelfEmploymentOptions]):
 
         return min_base
     #TODO podstawa zdrowotnego minimum to idzie ze stawek ale ona jest zależna od zysku a zysk jest liczony później i
-    #byćmoże nie da się tego tak obliczyć jak chcę
+    #TODO byćmoże nie da się tego tak obliczyć jak chcę
 
     @override
     def _calculate_health_insurance(self) -> Decimal:
@@ -197,5 +197,40 @@ class SelfEmployment(AbstractSalary[SelfEmploymentOptions]):
     def _calculate_total_employer_cost(self) -> Decimal:
         return self.salary_gross
 
+    @override
+    def _calculate_gross(self) -> None:
+        self.salary_base = self._calculate_salary_base().quantize(Decimal('0.01'))
+        self.salary_sick_pay = self._calculate_sick_pay().quantize(Decimal('0.01'))
+        self.salary_gross= self._calculate_salary_gross().quantize(Decimal('0.01'))
+        self.social_security_base = self._calculate_social_security_base().quantize(Decimal('0.01'))
+        self.social_security_base_total = self._calculate_social_security_base_total().quantize(Decimal('0.01'))
+        self.pension_insurance = self._calculate_pension_insurance().quantize(Decimal('0.01'))
+        self.disability_insurance = self._calculate_disability_insurance().quantize(Decimal('0.01'))
+        self.sickness_insurance = self._calculate_sickness_insurance().quantize(Decimal('0.01'))
+
+        self.health_insurance_base = self._calculate_health_insurance_base().quantize(Decimal('0.01'))
+        self.regular_cost = self._calculate_regular_cost().quantize(Decimal('0.01'))
+        self.author_rights_cost = self._calculate_author_rights_cost().quantize(Decimal('0.01'))
+        self.cost = self._calculate_cost().quantize(Decimal('0.01'))
+        self.cost_fifty_total = self._calculate_cost_fifty_total().quantize(Decimal('0.01'))
+        self.tax_base = self._calculate_tax_base().quantize(Decimal('1'))
+        self.tax_base_total = self._calculate_tax_base_total().quantize(Decimal('0.01'))
+        self.ppk_tax = self._calculate_ppk_tax().quantize(Decimal('0.01'))
+        self.tax = self._add_ppk_tax_and_check_if_is_positive(self._calculate_tax()).quantize(Decimal('0.01'))
+        self.health_insurance = self._calculate_health_insurance().quantize(Decimal('0.01'))
+        #self.ub_zdr_odl = self._calculate_ub_zdr_odl()
+        self.salary_deductions = self._calculate_salary_deductions().quantize(Decimal('0.01'))
+        self.tax_advance_payment = self._calculate_tax_advance_payment().quantize(Decimal('1'))
+        self.employee_ppk_contribution = self._calculate_employee_ppk_contribution().quantize(Decimal('0.01'))
+        self.employer_pension_contribution = self._calculate_pension_contribution().quantize(Decimal('0.01'))
+        self.employer_disability_contribution = self._calculate_disability_contribution().quantize(Decimal('0.01'))
+        self.accident_insurance = self._calculate_accident_insurance().quantize(Decimal('0.01'))
+        self.social_insurance_sum = self._calculate_social_insurance_sum().quantize(Decimal('0.01'))
+        self.fp = self._calculate_fp().quantize(Decimal('0.01'))
+        self.fgsp = self._calculate_fgsp().quantize(Decimal('0.01'))
+        self.employer_ppk_contribution = self._calculate_employer_ppk_contribution().quantize(Decimal('0.01'))
+
+        self.net_salary = self._calculate_net_salary().quantize(Decimal('0.01'))
+        self.total_employer_cost = self._calculate_total_employer_cost().quantize(Decimal('0.01'))
 
 

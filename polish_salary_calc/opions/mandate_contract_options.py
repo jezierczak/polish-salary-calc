@@ -1,5 +1,5 @@
 
-from salary.abstract_salary_options import AbstractSalaryOptions
+from polish_salary_calc.salary.abstract_salary_options import AbstractSalaryOptions
 from typing import TypedDict,Self
 from dataclasses import dataclass
 from decimal import Decimal
@@ -9,7 +9,7 @@ class MandateContractType(Enum):
     COMMON = 1
     THE_SAME_COMPANY = 2
     OTHER_COMPANY_MIN_SALARY=3
-    UNDER_26 =4
+    UNDER_26_AND_STUDENT =4
 
 class MandateContractOptionsDict(TypedDict):
     mandate_contract_type: MandateContractType

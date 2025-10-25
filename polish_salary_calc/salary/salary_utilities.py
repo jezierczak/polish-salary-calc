@@ -20,18 +20,21 @@ class SalaryUtilities:
     @staticmethod
     def calculate_author_rights_cost(
             income_tax_deduction: Decimal,
-            cost_fifty_ratio: Decimal,
+            cost_ratio: Decimal,
             base: Decimal,
             cost_fifty_sum: Decimal,
             cost_threshold: Decimal
         )-> Decimal:
         #if cost_fifty_ratio>0:
-        cost_fifty = income_tax_deduction * base * cost_fifty_ratio
+        if base > income_tax_deduction:
+            cost_fifty = (base - income_tax_deduction) * cost_ratio
+        else:
+            cost_fifty = Decimal('0.0')
         total_cost_fifty_sum  = cost_fifty_sum +  cost_fifty
         if total_cost_fifty_sum <= cost_threshold:
             return cost_fifty
-        elif total_cost_fifty_sum - cost_fifty <= cost_threshold:
-            return cost_threshold - total_cost_fifty_sum -  cost_fifty
+        elif total_cost_fifty_sum - cost_fifty < cost_threshold:
+            return cost_threshold - (total_cost_fifty_sum -  cost_fifty)
         else:
             return Decimal('0.0')
     #else: return Decimal('0.0')
@@ -48,10 +51,10 @@ class SalaryUtilities:
         if tax_base_sum_total <= tax_threshold:
             out = tax_base * income_tax[0] - month_tax_free
         elif tax_base_sum_total - tax_base <= tax_threshold:
-            tax_1 = (tax_threshold - (tax_base_sum - tax_base)) * income_tax[0] - month_tax_free
-            tax_2 = (tax_base_sum - tax_threshold) * income_tax[1]
+            tax_1 = (tax_threshold - (tax_base_sum_total - tax_base)) * income_tax[0] - month_tax_free
+            tax_2 = (tax_base_sum_total - tax_threshold) * income_tax[1]
             out = tax_1 + tax_2
         else:
             out = tax_base * income_tax[1]
 
-        return out
+        return out if out > 0 else Decimal('0.0')

@@ -1,9 +1,9 @@
 from decimal import Decimal
 from typing import override
-from rates.rates import Rates
-from opions.employment_contract_options import EmploymentContractOptions
-from salary.abstract_salary import AbstractSalary
-from salary.salary_utilities import SalaryUtilities
+from polish_salary_calc.rates.rates import Rates
+from polish_salary_calc.opions.employment_contract_options import EmploymentContractOptions
+from polish_salary_calc.salary.abstract_salary import AbstractSalary
+from polish_salary_calc.salary.salary_utilities import SalaryUtilities
 
 class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
     def __init__(self, rates: Rates, options: EmploymentContractOptions ) -> None:
@@ -68,7 +68,7 @@ class EmploymentContract(AbstractSalary[EmploymentContractOptions]):
     @override
     def _calculate_author_rights_cost(self) -> Decimal:
         return SalaryUtilities.calculate_author_rights_cost(
-            self.rates.income_tax_deduction[1],
+            self.regular_cost,
             self.options.cost_fifty_ratio,
             self.health_insurance_base,
             self.options.cost_fifty_sum,

@@ -1,9 +1,9 @@
-from salary.abstract_salary_options import AbstractSalaryOptions
-from decimal import Decimal
+from polish_salary_calc.salary.abstract_salary_options import AbstractSalaryOptions
+from decimal import Decimal, ROUND_UP
 from abc import ABC, abstractmethod
 from enum import Enum
-from rates.rates import Rates
-from salary.salary_utilities import SalaryUtilities
+from polish_salary_calc.rates.rates import Rates
+from polish_salary_calc.salary.salary_utilities import SalaryUtilities
 
 
 class SalaryType(Enum):
@@ -52,17 +52,22 @@ class AbstractSalary[T: AbstractSalaryOptions](ABC):
 
         self.is_calculated: bool = False
 
-        if self.options.accident_insurance_rate is None:
-            self.options.accident_insurance_rate = self.rates.accident_insurance_rate
+        # if self.options.accident_insurance_rate is None:
+        #     self.options.accident_insurance_rate = self.rates.accident_insurance_rate
+
+        if 0 < self.options.employer_ppk < Decimal('0.015') or 0 < self.options.employee_ppk < Decimal('0.02'):
+            raise ValueError('Employer or employee PPK rate is too small')
+
 
     def update_rates(self, rates: Rates) -> None:
         self.rates = rates
 
     def update_options(self, options: T) -> None:
         self.options = options
-
-        if self.options.accident_insurance_rate is None:
-            self.options.accident_insurance_rate = self.rates.accident_insurance_rate
+        if 0 < self.options.employer_ppk < Decimal('0.015') or 0 < self.options.employee_ppk < Decimal('0.02'):
+            raise ValueError('Employer or employee PPK is too small')
+        # if self.options.accident_insurance_rate is None:
+        #     self.options.accident_insurance_rate = self.rates.accident_insurance_rate
 
     @abstractmethod
     def _calculate_salary_base(self) -> Decimal:
@@ -167,6 +172,7 @@ class AbstractSalary[T: AbstractSalaryOptions](ABC):
 
     @abstractmethod
     def _calculate_employee_ppk_contribution(self) -> Decimal:
+        # print(f'*******************************{self.social_security_base}')
         return self.social_security_base * self.options.employee_ppk
 
     @abstractmethod
@@ -223,7 +229,7 @@ class AbstractSalary[T: AbstractSalaryOptions](ABC):
 
 
     @property
-    def brutto_ration(self) -> Decimal:
+    def brutto_ratio(self) -> Decimal:
         if self.total_employer_cost == 0: return Decimal('0.0')
         return ((self.salary_gross / self.total_employer_cost) * 100).quantize(Decimal('0.01'))
 
@@ -237,11 +243,6 @@ class AbstractSalary[T: AbstractSalaryOptions](ABC):
     def total_markups_ratio(self) -> Decimal:
         if self.total_employer_cost == 0: return Decimal('0.0')
         return ((self.total_markups / self.total_employer_cost) * 100).quantize(Decimal('0.01'))
-
-
-    @property
-    def brutto_brutto_ratio(self) -> Decimal:
-        return Decimal('100.00')
 
     # @abstractmethod
     # def rodzaj_koszt(self) -> int:
@@ -271,20 +272,20 @@ class AbstractSalary[T: AbstractSalaryOptions](ABC):
         self.pension_insurance = self._calculate_pension_insurance().quantize(Decimal('0.01'))
         self.disability_insurance = self._calculate_disability_insurance().quantize(Decimal('0.01'))
         self.sickness_insurance = self._calculate_sickness_insurance().quantize(Decimal('0.01'))
-
+        self.social_insurance_sum = self._calculate_social_insurance_sum().quantize(Decimal('0.01'))
         self.health_insurance_base = self._calculate_health_insurance_base().quantize(Decimal('0.01'))
-        self.regular_cost = self._calculate_regular_cost().quantize(Decimal('0.01'))
+        self.regular_cost = self._calculate_regular_cost().quantize(Decimal('1'))
         self.author_rights_cost = self._calculate_author_rights_cost().quantize(Decimal('0.01'))
-        self.cost = self._calculate_cost().quantize(Decimal('0.01'))
+        self.cost = self._calculate_cost().quantize(Decimal('1'))
         self.cost_fifty_total = self._calculate_cost_fifty_total().quantize(Decimal('0.01'))
-        self.tax_base = self._calculate_tax_base().quantize(Decimal('0.01'))
+        self.tax_base = self._calculate_tax_base().quantize(Decimal('1'))
         self.tax_base_total = self._calculate_tax_base_total().quantize(Decimal('0.01'))
         self.ppk_tax = self._calculate_ppk_tax().quantize(Decimal('0.01'))
         self.tax = self._add_ppk_tax_and_check_if_is_positive(self._calculate_tax()).quantize(Decimal('0.01'))
         self.health_insurance = self._calculate_health_insurance().quantize(Decimal('0.01'))
         #self.ub_zdr_odl = self._calculate_ub_zdr_odl()
         self.salary_deductions = self._calculate_salary_deductions().quantize(Decimal('0.01'))
-        self.tax_advance_payment = self._calculate_tax_advance_payment().quantize(Decimal('1'))
+        self.tax_advance_payment = self._calculate_tax_advance_payment().quantize(Decimal('1'),rounding=ROUND_UP)
         self.employee_ppk_contribution = self._calculate_employee_ppk_contribution().quantize(Decimal('0.01'))
         self.employer_pension_contribution = self._calculate_pension_contribution().quantize(Decimal('0.01'))
         self.employer_disability_contribution = self._calculate_disability_contribution().quantize(Decimal('0.01'))
@@ -292,7 +293,7 @@ class AbstractSalary[T: AbstractSalaryOptions](ABC):
         self.fp = self._calculate_fp().quantize(Decimal('0.01'))
         self.fgsp = self._calculate_fgsp().quantize(Decimal('0.01'))
         self.employer_ppk_contribution = self._calculate_employer_ppk_contribution().quantize(Decimal('0.01'))
-        self.social_insurance_sum = self._calculate_social_insurance_sum().quantize(Decimal('0.01'))
+
         self.net_salary = self._calculate_net_salary().quantize(Decimal('0.01'))
         self.total_employer_cost = self._calculate_total_employer_cost().quantize(Decimal('0.01'))
 
@@ -300,7 +301,7 @@ class AbstractSalary[T: AbstractSalaryOptions](ABC):
     def _calculate_net(self) -> None:
         wished_netto = self.input_salary #salary_base= brutto_estimate
 
-        while self.net_salary.quantize(Decimal('0.1')) != wished_netto.quantize(Decimal('0.1')) :
+        while self.net_salary.quantize(Decimal('0.01')) != wished_netto.quantize(Decimal('0.01')) :
             self.input_salary += wished_netto - self.net_salary
             self._calculate_gross()
             #print(self.salary_base, self.wynagrodzenie_netto)
