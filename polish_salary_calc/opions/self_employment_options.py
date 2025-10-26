@@ -3,7 +3,8 @@ from polish_salary_calc.salary.abstract_salary_options import AbstractSalaryOpti
 from typing import TypedDict,Self
 from dataclasses import dataclass
 from decimal import Decimal
-from enum import Enum
+from enum import Enum, IntEnum
+
 
 class SelfEmploymentType(Enum):
     COMMON = 1
@@ -12,14 +13,33 @@ class SelfEmploymentType(Enum):
     UNREGISTERED_BUSINESS = 4
     #SMALL_ZUS = 5
 
+class TaxType(Enum):
+    STANDARD = 1
+    LINE_TAX = 2
+    A_LUMP_SUM = 3
+
+class HealthBase(IntEnum):
+    NONE = 0
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
+
+LUMP_RATES_ALLOWED ={
+    Decimal('0.02'),Decimal('0.03'),Decimal('0.055'),Decimal('0.085'),Decimal('0.10'),Decimal('0.12'),Decimal('0.14'),Decimal('0.15'),Decimal('0.17')
+}
+
 class SelfEmploymentOptionsDict(TypedDict):
     self_employment_type: SelfEmploymentType
+    tax_type: TaxType
+    tax_lump_rate: Decimal
+    health_base: HealthBase
+    employer_pension_contribution_rate: Decimal
     is_sick_pay: bool
     sick_pay_days: int
     month_days: int
     is_fp:bool
     other_minimum_contract:bool
-    average_social_income_previous_year:Decimal
+    # average_social_income_previous_year:Decimal
     #is_a_lump_sum: bool
     costs: Decimal
     current_month_gross_sum: Decimal
@@ -35,12 +55,15 @@ class SelfEmploymentOptionsDict(TypedDict):
 class SelfEmploymentOptions(AbstractSalaryOptions):
 
     self_employment_type: SelfEmploymentType = SelfEmploymentType.COMMON
+    tax_type: TaxType = TaxType.STANDARD
+    tax_lump_rate: Decimal = Decimal('0.17')
+    health_base: HealthBase = HealthBase.NONE
     is_sick_pay: bool = False
     sick_pay_days: int = 0
     month_days: int = 0
     is_fp:bool = True
     other_minimum_contract:bool = False
-    average_social_income_previous_year:Decimal= Decimal('0.0')
+    # average_social_income_previous_year:Decimal= Decimal('0.0')
     #is_a_lump_sum: bool = False
     costs: Decimal = Decimal('0.0')
 
@@ -60,7 +83,15 @@ class SelfEmploymentOptions(AbstractSalaryOptions):
             self._options.self_employment_type = self_employment_type
             return self
 
-
+        def set_tax_type(self, tax_type: TaxType) -> Self:
+            self._options.tax_type = tax_type
+            return self
+        def set_tax_lump_rate(self, tax_lump_rate: Decimal) -> Self:
+            self._options.tax_lump_rate = tax_lump_rate
+            return self
+        def set_health_base(self, health_base: HealthBase) -> Self:
+            self._options.health_base = health_base
+            return self
 
         def set_sick_pay(self,  is_sick_pay: bool, sick_pay_days: int = 0, month_days: int = 0) -> Self:
             self._options.is_sick_pay =  is_sick_pay
@@ -76,9 +107,9 @@ class SelfEmploymentOptions(AbstractSalaryOptions):
             self._options.other_minimum_contract = other_minimum_contract
             return self
 
-        def set_average_social_income_previous_year(self, average_social_income_previous_year: Decimal) -> Self:
-            self._options.average_social_income_previous_year = average_social_income_previous_year
-            return self
+        # def set_average_social_income_previous_year(self, average_social_income_previous_year: Decimal) -> Self:
+        #     self._options.average_social_income_previous_year = average_social_income_previous_year
+        #     return self
 
         def set_costs(self, costs: Decimal) -> Self:
             self._options.costs = costs

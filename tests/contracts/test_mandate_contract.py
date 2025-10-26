@@ -16,7 +16,7 @@ from polish_salary_calc.salary.abstract_salary import SalaryType
   Decimal('0.0'),Decimal('3537.90'))
 ])
 def test_mandate_contract_common_with_and_without_fp_fgsp_ppk(
-        salary_base:Decimal, pension:Decimal,disability,sickness:Decimal,
+        salary_base:Decimal, pension:Decimal,disability: Decimal,sickness:Decimal,
         health_insurance:Decimal,cost:Decimal,
         tax_advance:Decimal,net:Decimal,
         emp_pension:Decimal,emp_disability:Decimal,

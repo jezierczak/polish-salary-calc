@@ -61,13 +61,13 @@ class AbstractSalary[T: AbstractSalaryOptions](ABC):
 
     def update_rates(self, rates: Rates) -> None:
         self.rates = rates
+        self.is_calculated = False
 
     def update_options(self, options: T) -> None:
         self.options = options
         if 0 < self.options.employer_ppk < Decimal('0.015') or 0 < self.options.employee_ppk < Decimal('0.02'):
             raise ValueError('Employer or employee PPK is too small')
-        # if self.options.accident_insurance_rate is None:
-        #     self.options.accident_insurance_rate = self.rates.accident_insurance_rate
+        self.is_calculated = False
 
     @abstractmethod
     def _calculate_salary_base(self) -> Decimal:

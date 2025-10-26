@@ -18,7 +18,7 @@ def test_rates_change_one_character(rates_default:Rates) -> None:
     assert new_rates.__getitem__("income_tax")== rates_default.income_tax
 
 def test_rates_tax_to_mont_year(rates_default:Rates) -> None:
-    assert rates_default.tax_free == rates_default.income_tax[0]*rates_default.tax_free_amount
+    assert rates_default.tax_free == rates_default.income_tax[0]*rates_default.tax_free_base
     assert rates_default.month_tax_free == rates_default.tax_free/12
 
 def test_wrong_key_set(rates_default:Rates) -> None:
