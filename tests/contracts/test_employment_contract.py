@@ -3,9 +3,9 @@ from unittest.mock import MagicMock
 from decimal import Decimal
 
 from polish_salary_calc.contracts.employment_contract import EmploymentContract
-from polish_salary_calc.opions.employment_contract_options import EmploymentContractOptions
+from polish_salary_calc.options.employment_contract_options import EmploymentContractOptions
 from polish_salary_calc.rates.rates import Rates
-from polish_salary_calc.salary.abstract_salary import SalaryType
+from polish_salary_calc.contracts.base_contract import SalaryType
 
 
 @pytest.fixture

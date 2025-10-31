@@ -2,9 +2,9 @@ import pytest
 from decimal import Decimal
 
 from polish_salary_calc.contracts.mandate_contract import MandateContract
-from polish_salary_calc.opions.mandate_contract_options import MandateContractOptions, MandateContractType
+from polish_salary_calc.options.mandate_contract_options import MandateContractOptions, MandateContractType
 from polish_salary_calc.rates.rates import Rates
-from polish_salary_calc.salary.abstract_salary import SalaryType
+from polish_salary_calc.contracts.base_contract import SalaryType
 
 @pytest.mark.parametrize(
 "salary_base,pension,disability,sickness,health_insurance,cost,tax_advance,net,emp_pension,emp_disability,accident,fp,fgsp,total_gross",

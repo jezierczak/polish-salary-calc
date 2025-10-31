@@ -1,6 +1,6 @@
 
-from polish_salary_calc.salary.abstract_salary_options import AbstractSalaryOptions
-from typing import TypedDict,Self
+from polish_salary_calc.options.contract_options import ContractOptions
+from typing import TypedDict, Self, Unpack
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
@@ -25,9 +25,10 @@ class MandateContractOptionsDict(TypedDict):
     employer_ppk: Decimal
     accident_insurance_rate: Decimal | None
     salary_deductions: Decimal
+    name: str
 
 @dataclass
-class MandateContractOptions(AbstractSalaryOptions):
+class MandateContractOptions(ContractOptions):
     mandate_contract_type: MandateContractType = MandateContractType.COMMON
     is_fifty: bool = False
     fp: bool = False
@@ -41,6 +42,8 @@ class MandateContractOptions(AbstractSalaryOptions):
     # employer_ppk: Decimal = Decimal('0.0')
     # accident_insurance_rate: Decimal | None = None
 
+    def to_dict(self) ->Unpack[MandateContractOptionsDict]:
+        return self.__dict__
 
     @classmethod
     def from_dict(cls, data: MandateContractOptionsDict) -> Self:
@@ -93,6 +96,9 @@ class MandateContractOptions(AbstractSalaryOptions):
             return self
         def set_salary_deductions(self, salary_deductions: Decimal) -> Self:
             self._options.salary_deductions = salary_deductions
+            return self
+        def set_name(self,name: str) -> Self:
+            self._options.name = name
             return self
         def build(self) -> 'MandateContractOptions':
             return self._options

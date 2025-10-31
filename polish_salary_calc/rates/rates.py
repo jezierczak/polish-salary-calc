@@ -3,6 +3,10 @@ from decimal import Decimal
 from dataclasses import dataclass
 from typing import Self
 
+from polish_salary_calc.console_printer.salary_console_printer import SalaryConsolePrinter
+from polish_salary_calc.salary.salary_utilities import SalaryUtilities
+
+
 class RatesDict(TypedDict):
     description: str
     pension_insurance_rate: Decimal
@@ -38,16 +42,15 @@ class Rates:
     pension_insurance_rate: Decimal = Decimal('0.0976')
     disability_insurance_rate: Decimal = Decimal('0.015')
     sickness_insurance_rate: Decimal = Decimal('0.0245')
-    income_tax_deduction = (Decimal('250'), Decimal('300'))
-    income_tax_deduction_20_50 = (Decimal('0.2'), Decimal('0.5'))
-    income_tax = (Decimal('0.12'), Decimal('0.32'))
+    income_tax_deduction: tuple[Decimal,Decimal] = (Decimal('250'), Decimal('300'))
+    income_tax_deduction_20_50: tuple[Decimal,Decimal] = (Decimal('0.2'), Decimal('0.5'))
+    income_tax: tuple[Decimal,Decimal] = (Decimal('0.12'), Decimal('0.32'))
     line_tax_rate: Decimal = Decimal('0.19')
     tax_free_base : Decimal = Decimal('30000')
     health_insurance_rate: Decimal = Decimal('0.09')
     health_insurance_rate_line_tax: Decimal = Decimal('0.049')
     se_lump_health_insurance_cap: tuple[Decimal, Decimal] = (Decimal('60000.0'), Decimal('300000.0'))
     health_insurance_lump_base: tuple[Decimal, Decimal,Decimal] = (Decimal('5129.18'), Decimal('8549.18'), Decimal('15388.52'))
-    #ub_zdr_odl: Decimal = None
     employer_pension_contribution_rate: Decimal = Decimal('0.0976')
     employer_disability_contribution_rate: Decimal = Decimal('0.0650')
     accident_insurance_rate: Decimal = Decimal('0.0167')
@@ -59,7 +62,7 @@ class Rates:
     standard_social_insurance_base: Decimal = Decimal('5203.80')
     reduced_social_insurance_base: Decimal = Decimal('1399.80 ')
     health_insurance_base: Decimal = Decimal('3499.50') #also unregistered cap
-    unregistered_cap = health_insurance_base
+    unregistered_cap: Decimal = health_insurance_base
     social_insurance_cap: Decimal = Decimal('260190')
 
     @property
@@ -83,27 +86,5 @@ class Rates:
             setattr(self, key, value)
         else:
             raise KeyError(f'Attribute {key} not found.')
-
-    # def get_all(self) -> dict:
-    #     return self.__dict__
-
-# def main() -> None:
-    #rates_dict = {
-    #                'description':'Descritpion',
-    #                'ub_emeryt':Decimal('9.00'),
-    #                'ub_rent':Decimal('9.60')
-    #            }
-    #rates = Rates().from_dict(rates_dict)
-    #print(rates.ub_emeryt)
-    #rates['pod_doch'] = Decimal('0.12')
-    #print(rates['ub_rent'])
-    #print(rates.pod_doch)
-
-#     rates = Rates()
-#     for n,rate in rates.get_all().items():
-#         print(f'{n:20.20} : {rate}')
-#
-# if __name__ == "__main__":
-#     main()
-
-
+    def __str__(self) -> str:
+        return SalaryUtilities.print_dict(self.to_dict())

@@ -1,6 +1,6 @@
 
-from polish_salary_calc.salary.abstract_salary_options import AbstractSalaryOptions
-from typing import TypedDict,Self
+from polish_salary_calc.options.contract_options import ContractOptions
+from typing import TypedDict, Self, Unpack
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum, IntEnum
@@ -50,9 +50,10 @@ class SelfEmploymentOptionsDict(TypedDict):
     #employer_ppk: Decimal
     accident_insurance_rate: Decimal | None
     salary_deductions: Decimal
+    name:str
 
 @dataclass
-class SelfEmploymentOptions(AbstractSalaryOptions):
+class SelfEmploymentOptions(ContractOptions):
 
     self_employment_type: SelfEmploymentType = SelfEmploymentType.COMMON
     tax_type: TaxType = TaxType.STANDARD
@@ -66,6 +67,9 @@ class SelfEmploymentOptions(AbstractSalaryOptions):
     # average_social_income_previous_year:Decimal= Decimal('0.0')
     #is_a_lump_sum: bool = False
     costs: Decimal = Decimal('0.0')
+
+    def to_dict(self) ->Unpack[SelfEmploymentOptionsDict]:
+        return self.__dict__
 
     @classmethod
     def from_dict(cls, data: SelfEmploymentOptionsDict) -> Self:
@@ -114,9 +118,6 @@ class SelfEmploymentOptions(AbstractSalaryOptions):
         def set_costs(self, costs: Decimal) -> Self:
             self._options.costs = costs
             return self
-        # def  is_a_lump_sum(self,  is_a_lump_sum: bool) -> Self:
-        #     self._options. is_a_lump_sum =  is_a_lump_sum
-        #     return self
 
         def set_current_month_gross_sum(self, current_month_gross_sum: Decimal) -> Self:
              self._options.current_month_gross_sum = current_month_gross_sum
@@ -124,9 +125,7 @@ class SelfEmploymentOptions(AbstractSalaryOptions):
         def set_social_security_base_sum(self, social_security_base_sum: Decimal) -> Self:
             self._options.social_security_base_sum = social_security_base_sum
             return self
-        # def set_cost_fifty_sum(self, cost_fifty_sum: Decimal) -> Self:
-        #     self._options.cost_fifty_sum = cost_fifty_sum
-        #     return self
+
         def set_tax_base_sum(self, tax_base_sum: Decimal) -> Self:
             self._options.tax_base_sum = tax_base_sum
             return self
@@ -134,8 +133,14 @@ class SelfEmploymentOptions(AbstractSalaryOptions):
         def set_accident_insurance_rate(self, accident_insurance_rate: Decimal | None) -> Self:
              self._options.accident_insurance_rate = accident_insurance_rate
              return self
+
         def set_salary_deductions(self, salary_deductions: Decimal) -> Self:
             self._options.salary_deductions = salary_deductions
             return self
+
+        def set_name(self,name: str) -> Self:
+            self._options.name = name
+            return self
+
         def build(self) -> 'SelfEmploymentOptions':
             return self._options

@@ -2,34 +2,34 @@ from decimal import Decimal
 from typing import override
 
 from polish_salary_calc.rates.rates import Rates
-from polish_salary_calc.opions.mandate_contract_options import MandateContractOptions, MandateContractType
-from polish_salary_calc.salary.abstract_salary import AbstractSalary
+from polish_salary_calc.options.mandate_contract_options import MandateContractOptions, MandateContractType
+from polish_salary_calc.contracts.base_contract import BaseContract
 from polish_salary_calc.salary.salary_utilities import SalaryUtilities
 
 
-class MandateContract(AbstractSalary[MandateContractOptions]):
+class MandateContract(BaseContract[MandateContractOptions]):
     def __init__(self, rates: Rates, options: MandateContractOptions ) -> None:
         super().__init__(rates, options)
 
     @override
-    def _calculate_salary_base(self) -> Decimal:
-        return super()._calculate_salary_base()
+    def calculate_salary_base(self) -> Decimal:
+        return super().calculate_salary_base()
 
     @override
-    def _calculate_sick_pay(self) -> Decimal:
+    def calculate_sick_pay(self) -> Decimal:
         return Decimal('0.0')
 
     @override
-    def _calculate_salary_gross(self) -> Decimal:
-        return super()._calculate_salary_gross()
+    def calculate_salary_gross(self) -> Decimal:
+        return super().calculate_salary_gross()
 
     @override
-    def _calculate_social_security_base(self) -> Decimal:
+    def calculate_social_security_base(self) -> Decimal:
         match self.options.mandate_contract_type:
             case MandateContractType.UNDER_26_AND_STUDENT | MandateContractType.OTHER_COMPANY_MIN_SALARY:
                 return Decimal('0.0')
             case MandateContractType.COMMON | MandateContractType.THE_SAME_COMPANY:
-                return super()._calculate_social_security_base()
+                return super().calculate_social_security_base()
             case _: raise NotImplementedError(f'Unknown mandate contract type:  {self.options.mandate_contract_type}')
 
     # @override
@@ -37,32 +37,32 @@ class MandateContract(AbstractSalary[MandateContractOptions]):
     #     return self.options.social_security_base_sum + self.social_security_base
 
     @override
-    def _calculate_pension_insurance(self) -> Decimal:
+    def calculate_pension_insurance(self) -> Decimal:
         match self.options.mandate_contract_type:
             case MandateContractType.UNDER_26_AND_STUDENT | MandateContractType.OTHER_COMPANY_MIN_SALARY:
                 return Decimal('0.0')
             case MandateContractType.COMMON | MandateContractType.THE_SAME_COMPANY:
-                return super()._calculate_pension_insurance()
+                return super().calculate_pension_insurance()
             case _:
                 raise NotImplementedError(f'Unknown mandate contract type:  {self.options.mandate_contract_type}')
 
     @override
-    def _calculate_disability_insurance(self) -> Decimal:
+    def calculate_disability_insurance(self) -> Decimal:
         match self.options.mandate_contract_type:
             case MandateContractType.UNDER_26_AND_STUDENT | MandateContractType.OTHER_COMPANY_MIN_SALARY:
                 return Decimal('0.0')
             case MandateContractType.COMMON | MandateContractType.THE_SAME_COMPANY:
-                return super()._calculate_disability_insurance()
+                return super().calculate_disability_insurance()
             case _:
                 raise NotImplementedError(f'Unknown mandate contract type:  {self.options.mandate_contract_type}')
 
     @override
-    def _calculate_sickness_insurance(self) -> Decimal:
+    def calculate_sickness_insurance(self) -> Decimal:
         match self.options.mandate_contract_type:
             case MandateContractType.UNDER_26_AND_STUDENT | MandateContractType.OTHER_COMPANY_MIN_SALARY | MandateContractType.COMMON:
                 return Decimal('0.0')
             case  MandateContractType.THE_SAME_COMPANY:
-                return super()._calculate_sickness_insurance()
+                return super().calculate_sickness_insurance()
             case _:
                 raise NotImplementedError(f'Unknown mandate contract type:  {self.options.mandate_contract_type}')
 
@@ -72,14 +72,14 @@ class MandateContract(AbstractSalary[MandateContractOptions]):
     #     return self.pension_insurance + self.disability_insurance + self.sickness_insurance
 
     @override
-    def _calculate_cost(self) -> Decimal:
+    def calculate_cost(self) -> Decimal:
         #if self.podst_podatek * (1 - self.options.cost_fifty_ratio) - self._calculate_koszt_norm() < 0:
         #    return self.koszt_fifty + self.podst_podatek * (1 - self.options.cost_fifty_ratio)
         #else:
         if self.options.mandate_contract_type == MandateContractType.UNDER_26_AND_STUDENT:
             return Decimal('0')
         else:
-            return super()._calculate_cost()
+            return super().calculate_cost()
 
     @override
     def _calculate_regular_cost(self) -> Decimal:
@@ -103,26 +103,22 @@ class MandateContract(AbstractSalary[MandateContractOptions]):
                 self.rates.cost_threshold
                 )
 
-    # @property
-    # def cost_fifty_sum(self) -> Decimal:
-    #     return self.options.cost_fifty_sum + self.author_rights_cost
-
     @override
-    def _calculate_health_insurance_base(self) -> Decimal:
+    def calculate_health_insurance_base(self) -> Decimal:
         if self.options.mandate_contract_type == MandateContractType.UNDER_26_AND_STUDENT:
             return Decimal('0.0')
-        return super()._calculate_health_insurance_base()
+        return super().calculate_health_insurance_base()
 
     @override
-    def _calculate_health_insurance(self) -> Decimal:
-        return super()._calculate_health_insurance()
+    def calculate_health_insurance(self) -> Decimal:
+        return super().calculate_health_insurance()
 
     @override
-    def _calculate_tax_base(self) -> Decimal:
-        return super()._calculate_tax_base()
+    def calculate_tax_base(self) -> Decimal:
+        return super().calculate_tax_base()
 
     @override
-    def _calculate_tax(self) -> Decimal:
+    def calculate_tax(self) -> Decimal:
         if self.options.mandate_contract_type == MandateContractType.UNDER_26_AND_STUDENT: return Decimal('0.0')
 
         if (self.options.is_a_lump_sum
@@ -134,61 +130,61 @@ class MandateContract(AbstractSalary[MandateContractOptions]):
         return out if out>Decimal('0.0') else Decimal('0.0')
 
     @override
-    def _calculate_ppk_tax(self) -> Decimal:
+    def calculate_ppk_tax(self) -> Decimal:
         if self.options.mandate_contract_type == (MandateContractType.UNDER_26_AND_STUDENT or MandateContractType.OTHER_COMPANY_MIN_SALARY):
             return Decimal('0.0')
-        return super()._calculate_ppk_tax()
+        return super().calculate_ppk_tax()
 
     @override
-    def _calculate_salary_deductions(self) -> Decimal:
-        return super()._calculate_salary_deductions()
+    def calculate_salary_deductions(self) -> Decimal:
+        return super().calculate_salary_deductions()
 
     @override
-    def _calculate_employee_ppk_contribution(self) -> Decimal:
+    def calculate_employee_ppk_contribution(self) -> Decimal:
 
         if self.options.mandate_contract_type == (MandateContractType.UNDER_26_AND_STUDENT or MandateContractType.OTHER_COMPANY_MIN_SALARY):
             return Decimal('0.0')
-        return super()._calculate_employee_ppk_contribution()
+        return super().calculate_employee_ppk_contribution()
 
     @override
-    def _calculate_net_salary(self) -> Decimal:
-        return super()._calculate_net_salary()
+    def calculate_net_salary(self) -> Decimal:
+        return super().calculate_net_salary()
 
     @override
-    def _calculate_pension_contribution(self) -> Decimal:
-        return super()._calculate_pension_contribution()
+    def calculate_pension_contribution(self) -> Decimal:
+        return super().calculate_pension_contribution()
 
     @override
-    def _calculate_disability_contribution(self)-> Decimal:
-        return super()._calculate_disability_contribution()
+    def calculate_disability_contribution(self)-> Decimal:
+        return super().calculate_disability_contribution()
 
     @override
-    def _calculate_accident_insurance(self) -> Decimal:
-        return super()._calculate_accident_insurance()
+    def calculate_accident_insurance(self) -> Decimal:
+        return super().calculate_accident_insurance()
 
 
     @override
-    def _calculate_fp(self) -> Decimal:
+    def calculate_fp(self) -> Decimal:
         if not self.options.fp:
             return Decimal('0')
         else:
-            return super()._calculate_fp()
+            return super().calculate_fp()
 
 
 
     @override
-    def _calculate_fgsp(self) -> Decimal:
+    def calculate_fgsp(self) -> Decimal:
         if not self.options.fgsp:
             return Decimal('0')
         else:
-            return super()._calculate_fgsp()
+            return super().calculate_fgsp()
 
     @override
-    def _calculate_employer_ppk_contribution(self) -> Decimal:
+    def calculate_employer_ppk_contribution(self) -> Decimal:
         if self.options.mandate_contract_type == (MandateContractType.UNDER_26_AND_STUDENT or MandateContractType.OTHER_COMPANY_MIN_SALARY):
             return Decimal('0.0')
-        return super()._calculate_employer_ppk_contribution()
+        return super().calculate_employer_ppk_contribution()
 
     @override
-    def _calculate_total_employer_cost(self) -> Decimal:
-        return super()._calculate_total_employer_cost()
+    def calculate_total_employer_cost(self) -> Decimal:
+        return super().calculate_total_employer_cost()

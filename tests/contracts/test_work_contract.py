@@ -2,9 +2,9 @@ import pytest
 from decimal import Decimal
 
 from polish_salary_calc.contracts.work_contract import WorkContract
-from polish_salary_calc.opions.work_contract_options import WorkContractOptions, WorkContractType
+from polish_salary_calc.options.work_contract_options import WorkContractOptions, WorkContractType
 from polish_salary_calc.rates.rates import Rates
-from polish_salary_calc.salary.abstract_salary import SalaryType
+from polish_salary_calc.contracts.base_contract import SalaryType
 
 
 @pytest.mark.parametrize(

@@ -1,18 +1,19 @@
-from polish_salary_calc.rates.rates import Rates
-from polish_salary_calc.salary.abstract_salary import SalaryType
+from calendar import Month
 
-from polish_salary_calc.opions.employment_contract_options import EmploymentContractOptions
-from polish_salary_calc.opions.mandate_contract_options import MandateContractOptions, MandateContractType
-from polish_salary_calc.opions.work_contract_options import WorkContractOptions, WorkContractType
-from polish_salary_calc.opions.self_employment_options import SelfEmploymentOptions, SelfEmploymentType, TaxType, \
+from polish_salary_calc.console_printer.salary_console_printer import SalaryConsolePrinter
+from polish_salary_calc.contracts.self_employment import SelfEmployment
+from polish_salary_calc.options.self_employment_options import SelfEmploymentOptions, SelfEmploymentType, TaxType, \
     HealthBase
+from polish_salary_calc.rates.rates import Rates
+from polish_salary_calc.contracts.base_contract import SalaryType
+
+from polish_salary_calc.options.employment_contract_options import EmploymentContractOptions
 
 from polish_salary_calc.contracts.employment_contract import EmploymentContract
-from polish_salary_calc.contracts.mandate_contract import MandateContract
-from polish_salary_calc.contracts.work_contract import WorkContract
-from polish_salary_calc.contracts.self_employment import SelfEmployment
 
 from decimal import Decimal
+
+from polish_salary_calc.service.year_contract_simulator import YearContractService, Months
 
 
 def main() -> None:
@@ -22,17 +23,29 @@ def main() -> None:
                              is_increased_costs(True).
                              is_active_business(False).
                              is_under_26(False).
+                                set_employee_ppk(Decimal("0.02")).
+                                set_employer_ppk(Decimal("0.015")).
+                                is_fp_fgsp(True).
                              build())
-    salary = EmploymentContract(rates,employment_options)
-    salary.calculate(Decimal('6000'), SalaryType.GROSS)
+    # salary = EmploymentContract(rates,employment_options)
+    # salary.calculate(Decimal('10000'), SalaryType.GROSS)
 
-    print(salary.get_rates())
-    print(salary.get_options())
-    for k,i in salary.get_all_output().items():
-        print(f'{k:20.20}: {i}')
-    print(f'Net ratio: {salary.net_ratio}')
-    print(f'Total markups: {salary.total_markups}')
-    print(f'Total markups ratio: {salary.total_markups_ratio}')
+    # print(rates)
+    # print(employment_options)
+    # print(salary)
+
+    # printer = ConsolePrinter(salary)
+    # print(printer.print_rates())
+    # print(printer.print_options())
+    # print(printer.print_contract())
+
+    # print(salary.get_rates())
+    # print(salary.get_options())
+    # for k,i in salary.to_dict().items():
+    #     print(f'{k:20.20}: {i}')
+    # print(f'Net ratio: {salary.net_ratio}')
+    # print(f'Total markups: {salary.total_markups}')
+    # print(f'Total markups ratio: {salary.total_markups_ratio}')
 
     # print('--------------------Zlecenie----------------------------')
     #
@@ -72,20 +85,23 @@ def main() -> None:
     # print(f'Total markups: {salary3.total_markups}')
     # print(f'Total markups ratio: {salary34.total_markups_ratio}')
     # #
-    # print('--------------------Działalność----------------------------')
+    print('--------------------Działalność----------------------------')
     #
     # self_employment_options = (SelfEmploymentOptions().
     #                             builder().
     #                             set_self_employment_type(SelfEmploymentType.COMMON).
     #                             set_sick_pay(True).
-    #                             set_tax_type(TaxType.A_LUMP_SUM).
-    #                             set_tax_lump_rate(Decimal('0.055')).
+    #                             #set_tax_type(TaxType.A_LUMP_SUM).
+    #                             #set_tax_lump_rate(Decimal('0.055')).
     #                             set_health_base(HealthBase.NONE).
     #                             set_costs(Decimal('1000.0')).
     #                             set_tax_base_sum(Decimal('1000.0')).
+    #                             #set_name("Umowa nr 193").
     #                             build())
     # salary4 = SelfEmployment(rates, self_employment_options)
     # salary4.calculate(Decimal('10000'), SalaryType.GROSS)
+    # print(salary4.to_dict())
+    # print(salary4)
     #
     # # print(salary4.get_rates())
     # # print(salary4.get_options())
@@ -95,5 +111,15 @@ def main() -> None:
     # print(f'Total markups: {salary4.total_markups}')
     # print(f'Total markups ratio: {salary4.total_markups_ratio}')
 
+    # contract_service = ContractServic(rates)
+    # contract_service.add_contract(All,salary4)
+    # contract_service.show()
+    # contract_service.export(EXCCEL,"mojasymulacja.xcl", clean=True)
+
+    yc = YearContractService(rates,employment_options,Decimal("8000"))
+    yc.calculate()
+    print(yc.monthly_contract_calculated_data[Months.JAN])
+    print("------------------------")
+    print(yc.summary)
 if __name__ == '__main__':
     main()

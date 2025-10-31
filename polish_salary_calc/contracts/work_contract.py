@@ -1,70 +1,73 @@
 from decimal import Decimal
-from functools import cmp_to_key
 from typing import override
-from polish_salary_calc.opions.work_contract_options import WorkContractOptions, WorkContractType
+from polish_salary_calc.options.work_contract_options import WorkContractOptions, WorkContractType
 from polish_salary_calc.rates.rates import Rates
-from polish_salary_calc.salary.abstract_salary import AbstractSalary
+from polish_salary_calc.contracts.base_contract import BaseContract
 from polish_salary_calc.salary.salary_utilities import SalaryUtilities
 
-class WorkContract(AbstractSalary[WorkContractOptions]):
+class WorkContract(BaseContract[WorkContractOptions]):
     def __init__(self, rates: Rates, options: WorkContractOptions ) -> None:
         super().__init__(rates, options)
 
     @override
-    def _calculate_salary_base(self) -> Decimal:
-        return super()._calculate_salary_base()
+    def calculate_salary_base(self) -> Decimal:
+        return super().calculate_salary_base()
 
     @override
-    def _calculate_sick_pay(self) -> Decimal:
+    def calculate_sick_pay(self) -> Decimal:
         return Decimal('0.0')
 
     @override
-    def _calculate_salary_gross(self) -> Decimal:
-        return super()._calculate_salary_gross()
+    def calculate_salary_gross(self) -> Decimal:
+        return super().calculate_salary_gross()
 
     @override
-    def _calculate_social_security_base(self) -> Decimal:
+    def calculate_social_security_base(self) -> Decimal:
         match self.options.work_contract_type:
             case WorkContractType.COMMON:
                 return Decimal('0.0')
             case WorkContractType.THE_SAME_COMPANY:
-                return super()._calculate_social_security_base()
+                return super().calculate_social_security_base()
+        return Decimal('0.0')
 
     # @override
     # def _calculate_social_security_base_total(self) -> Decimal:
     #     return self.options.social_security_base_sum + self.social_security_base
 
     @override
-    def _calculate_pension_insurance(self) -> Decimal:
+    def calculate_pension_insurance(self) -> Decimal:
         match self.options.work_contract_type:
             case WorkContractType.COMMON:
                 return Decimal('0.0')
             case WorkContractType.THE_SAME_COMPANY:
-                return super()._calculate_pension_insurance()
+                return super().calculate_pension_insurance()
+        return Decimal('0.0')
 
     @override
-    def _calculate_disability_insurance(self) -> Decimal:
+    def calculate_disability_insurance(self) -> Decimal:
         match self.options.work_contract_type:
             case WorkContractType.COMMON:
                 return Decimal('0.0')
             case WorkContractType.THE_SAME_COMPANY:
-                return super()._calculate_disability_insurance()
+                return super().calculate_disability_insurance()
+        return Decimal('0.0')
 
     @override
-    def _calculate_sickness_insurance(self) -> Decimal:
+    def calculate_sickness_insurance(self) -> Decimal:
         match self.options.work_contract_type:
             case WorkContractType.COMMON:
                 return Decimal('0.0')
             case WorkContractType.THE_SAME_COMPANY:
-                return super()._calculate_sickness_insurance()
+                return super().calculate_sickness_insurance()
+        return Decimal('0.0')
 
     # @override
     # def _calculate_social_insurance_sum(self) -> Decimal:
     #     return self.pension_insurance + self.disability_insurance + self.sickness_insurance
 
     @override
-    def _calculate_cost(self) -> Decimal:
-        return super()._calculate_cost()
+    def calculate_cost(self) -> Decimal:
+        return super().calculate_cost()
 
     @override
     def _calculate_regular_cost(self) -> Decimal:
@@ -95,27 +98,28 @@ class WorkContract(AbstractSalary[WorkContractOptions]):
                 )
 
     @override
-    def _calculate_health_insurance_base(self) -> Decimal:
+    def calculate_health_insurance_base(self) -> Decimal:
         match self.options.work_contract_type:
             case WorkContractType.COMMON:
                 return Decimal('0.0')
             case WorkContractType.THE_SAME_COMPANY:
-                return super()._calculate_health_insurance_base()
+                return super().calculate_health_insurance_base()
+        return Decimal('0.0')
 
     @override
-    def _calculate_health_insurance(self) -> Decimal:
-        return super()._calculate_health_insurance()
+    def calculate_health_insurance(self) -> Decimal:
+        return super().calculate_health_insurance()
 
     @override
-    def _calculate_tax_base(self) -> Decimal:
-        return super()._calculate_tax_base()
+    def calculate_tax_base(self) -> Decimal:
+        return super().calculate_tax_base()
 
     # @property
     # def tax_base_sum(self)  ->Decimal:
     #     return self.options.tax_base_sum + self.tax_base
 
     @override
-    def _calculate_tax(self) -> Decimal:
+    def calculate_tax(self) -> Decimal:
         if (self.options.is_a_lump_sum
                 and self.salary_gross <= Decimal('200')
                 and self.options.work_contract_type != WorkContractType.THE_SAME_COMPANY):
@@ -124,55 +128,55 @@ class WorkContract(AbstractSalary[WorkContractOptions]):
         return self.tax_base * self.rates.income_tax[0]
 
     @override
-    def _calculate_ppk_tax(self) -> Decimal:
+    def calculate_ppk_tax(self) -> Decimal:
         if self.options.work_contract_type == WorkContractType.COMMON: return Decimal('0.0')
-        return super()._calculate_ppk_tax()
+        return super().calculate_ppk_tax()
 
     @override
-    def _calculate_salary_deductions(self) -> Decimal:
-        return super()._calculate_salary_deductions()
+    def calculate_salary_deductions(self) -> Decimal:
+        return super().calculate_salary_deductions()
 
     @override
-    def _calculate_employee_ppk_contribution(self) -> Decimal:
-        if self.options.work_contract_type == WorkContractType.COMMON: return Decimal('0.0')
-
-        return super()._calculate_employee_ppk_contribution()
-
-    @override
-    def _calculate_net_salary(self) -> Decimal:
-        return super()._calculate_net_salary()
-
-    @override
-    def _calculate_pension_contribution(self) -> Decimal:
-        return super()._calculate_pension_contribution()
-
-    @override
-    def _calculate_disability_contribution(self)-> Decimal:
-        return super()._calculate_disability_contribution()
-
-
-    @override
-    def _calculate_accident_insurance(self) -> Decimal:
-        return super()._calculate_accident_insurance()
-
-
-    @override
-    def _calculate_fp(self) -> Decimal:
-            return super()._calculate_fp()
-
-
-
-    @override
-    def _calculate_fgsp(self) -> Decimal:
-            return super()._calculate_fgsp()
-
-    @override
-    def _calculate_employer_ppk_contribution(self) -> Decimal:
+    def calculate_employee_ppk_contribution(self) -> Decimal:
         if self.options.work_contract_type == WorkContractType.COMMON: return Decimal('0.0')
 
-        return super()._calculate_employer_ppk_contribution()
+        return super().calculate_employee_ppk_contribution()
 
     @override
-    def _calculate_total_employer_cost(self) -> Decimal:
-        return super()._calculate_total_employer_cost()
+    def calculate_net_salary(self) -> Decimal:
+        return super().calculate_net_salary()
+
+    @override
+    def calculate_pension_contribution(self) -> Decimal:
+        return super().calculate_pension_contribution()
+
+    @override
+    def calculate_disability_contribution(self)-> Decimal:
+        return super().calculate_disability_contribution()
+
+
+    @override
+    def calculate_accident_insurance(self) -> Decimal:
+        return super().calculate_accident_insurance()
+
+
+    @override
+    def calculate_fp(self) -> Decimal:
+            return super().calculate_fp()
+
+
+
+    @override
+    def calculate_fgsp(self) -> Decimal:
+            return super().calculate_fgsp()
+
+    @override
+    def calculate_employer_ppk_contribution(self) -> Decimal:
+        if self.options.work_contract_type == WorkContractType.COMMON: return Decimal('0.0')
+
+        return super().calculate_employer_ppk_contribution()
+
+    @override
+    def calculate_total_employer_cost(self) -> Decimal:
+        return super().calculate_total_employer_cost()
 
