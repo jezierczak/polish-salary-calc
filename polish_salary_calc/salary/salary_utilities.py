@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 
+
 class SalaryUtilities:
     @staticmethod
     def calculate_pension_or_disability_insurance(
@@ -60,20 +61,7 @@ class SalaryUtilities:
         return out if out > 0 else Decimal('0.0')
 
 
-    @staticmethod
-    def print_dict(input_dict: dict) -> str:
-        out = []
-        max_len = 0
-        for key, value in input_dict.items():
-            if isinstance(value,tuple):
-                value = "  ".join(str(v) for v in value)
-            max_len = max(max_len, len(key)+len(str(value)))
 
-        for key, value in input_dict.items():
-            if isinstance(value,tuple):
-                value =" ".join(str(v) for v in value)
-                value = "("+value+")"
-            key = key.upper()
-            out.append(f"{key}{"":.>{max_len-len(key)-len(str(value))+2}}{str(value)}")
 
-        return "\n".join(out)
+
+

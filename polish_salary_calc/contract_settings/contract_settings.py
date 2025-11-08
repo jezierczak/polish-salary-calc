@@ -7,7 +7,7 @@ from polish_salary_calc.salary.salary_utilities import SalaryUtilities
 
 
 @dataclass
-class ContractOptions(ABC):
+class ContractSettngs(ABC):
     name: str | None = None
     current_month_gross_sum: Decimal = Decimal('0.0')
     social_security_base_sum: Decimal = Decimal('0.0')

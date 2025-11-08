@@ -3,7 +3,6 @@ from decimal import Decimal
 from dataclasses import dataclass
 from typing import Self
 
-from polish_salary_calc.console_printer.salary_console_printer import SalaryConsolePrinter
 from polish_salary_calc.salary.salary_utilities import SalaryUtilities
 
 

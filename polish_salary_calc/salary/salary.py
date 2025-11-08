@@ -1,11 +1,16 @@
 from datetime import datetime
+from pathlib import Path
 
-from polish_salary_calc.options.contract_options import ContractOptions
+import pandas as pd
+
+from polish_salary_calc.console_printer.exporter import SalaryExporter
+from polish_salary_calc.contract_settings.contract_settings import ContractSettngs
 from decimal import Decimal
 from enum import Enum
+
+from polish_salary_calc.rates.rates import Rates
 from polish_salary_calc.salary.salary_utilities import SalaryUtilities
 from typing import Self, TypedDict
-
 
 class SalaryType(Enum):
     GROSS = 1
@@ -49,13 +54,24 @@ class SalaryDict(TypedDict):
     net_ratio: Decimal
     total_markups_ratio: Decimal
 
-class Salary[T: ContractOptions]:
-    def __init__(self) -> None:
+class Salary[T: ContractSettngs]:
+    def __init__(self, rates: Rates, contract_settings: T) -> None:
 
 
         self.input_salary = Decimal('0')
 
         self._created_datetime = datetime.now()
+
+        self.rates: Rates = rates
+        self.contract_settings: T = contract_settings
+
+        if self.contract_settings.name is None:
+            self.name = self._generate_name_from_date()
+        else:
+            self.name = self.contract_settings.name
+
+        if 0 < self.contract_settings.employer_ppk < Decimal('0.015') or 0 < self.contract_settings.employee_ppk < Decimal('0.02'):
+            raise ValueError('Employer or employee PPK rate is too small')
 
 
         self.salary_base: Decimal = Decimal('0.0') #płaca podstawowa
@@ -93,6 +109,9 @@ class Salary[T: ContractOptions]:
         self.is_calculated: bool = False
 
 
+        self.exporter = SalaryExporter()
+
+
 
     def _generate_name_from_date(self) -> str:
         return f'{self.__class__.__name__}{self._created_datetime:%Y_%m_%d_%H%M%S}'
@@ -106,7 +125,7 @@ class Salary[T: ContractOptions]:
         return (self.total_employer_cost - self.net_salary).quantize(Decimal('0.01'))
 
     @property
-    def brutto_ratio(self) -> Decimal:
+    def gross_ratio(self) -> Decimal:
         if self.total_employer_cost == 0: return Decimal('0.0')
         return ((self.salary_gross / self.total_employer_cost) * 100).quantize(Decimal('0.01'))
 
@@ -121,24 +140,53 @@ class Salary[T: ContractOptions]:
         return ((self.total_markups / self.total_employer_cost) * 100).quantize(Decimal('0.01'))
 
 
-    def to_dict(self)-> dict:
-        output = self.__dict__
-        output = {k:i for k,i in output.items() if k not in ["rates","options","_created_datetime"]}
-        # output["name"] = self.name
-        # output["created_datetime"] = self.created_datetime
-        output["total_markups"] = self.total_markups
-        output["brutto_ratio"] = self.brutto_ratio
-        output["net_ratio"] = self.net_ratio
-        output["total_markups_ratio"] = self.total_markups_ratio
+    def to_dict(self,row_name: str | None = None)-> dict[str,dict[str,str | Decimal | bool]]:
+        # output = self.__dict__
+        # output = {k:i for k,i in output.items() if k not in ["rates","contract_settings","_created_datetime"]}
+        if row_name is None:
+            row_name = self.name
+        output:  dict[str, dict[str, str | Decimal | bool]] = {row_name:{
+                                                  "contract_type": self.get_contract_type(),
+                                                  "created_datetime": self.created_datetime,
+                                                  "salary_base": self.salary_base,
+                                                  "salary_sick_pay": self.salary_sick_pay,
+                                                  "salary_gross": self.salary_gross,
+                                                  "social_security_base": self.social_security_base,
+                                                  # "social_security_base_total": self.social_security_base_total,
+                                                  "pension_insurance": self.pension_insurance,
+                                                  "disability_insurance": self.disability_insurance,
+                                                  "sickness_insurance": self.sickness_insurance,
+                                                  "social_insurance_sum": self.social_insurance_sum, "cost": self.cost,
+                                                  # "cost_fifty_total": self.cost_fifty_total,
+                                                  "regular_cost": self.regular_cost,
+                                                  "author_rights_cost": self.author_rights_cost,
+                                                  "health_insurance_base": self.health_insurance_base,
+                                                  "tax_base": self.tax_base,
+                                                  # "tax_base_total": self.tax_base_total,
+                                                  "tax": self.tax, "health_insurance": self.health_insurance,
+                                                  "ppk_tax": self.ppk_tax,
+                                                  "tax_advance_payment": self.tax_advance_payment,
+                                                  "salary_deductions": self.salary_deductions,
+                                                  "employee_ppk_contribution": self.employee_ppk_contribution,
+                                                  "net_salary": self.net_salary,
+                                                  "employer_pension_contribution": self.employer_pension_contribution,
+                                                  "employer_disability_contribution": self.employer_disability_contribution,
+                                                  "accident_insurance": self.accident_insurance, "fp": self.fp,
+                                                  "fgsp": self.fgsp,
+                                                  "employer_ppk_contribution": self.employer_ppk_contribution,
+                                                  "total_employer_cost": self.total_employer_cost,
+                                                  "total_markups": self.total_markups,
+                                                  # "gross_ratio": self.gross_ratio,
+                                                  "net_ratio": self.net_ratio,
+                                                  "total_markups_ratio": self.total_markups_ratio}}
+        # self.ub_zdr_odl: Decimal= Decimal('0.0')
         return output
 
     def get_contract_type(self) -> str:
         return self.__class__.__name__
 
-
-
     def __str__(self) -> str:
-        return SalaryUtilities.print_dict(self.to_dict())
+        return self.exporter.to_string(self.to_dict())
 
     def __eq__(self, other:object) -> bool:
         if not isinstance(other, Salary):
@@ -154,23 +202,24 @@ class Salary[T: ContractOptions]:
         return self.net_salary >= other.net_salary
 
     def __add__(self, other:Self) -> "Salary":
-        output:Salary = Salary()
+        output:Salary = Salary(self.rates,self.contract_settings)
         output.salary_base = self.salary_base + other.salary_base
         output.salary_sick_pay = self.salary_sick_pay + other.salary_sick_pay
         output.salary_gross = self.salary_gross +other.salary_gross
         output.social_security_base = self.social_security_base + other.social_security_base
-        output.social_security_base_total = self.social_security_base_total
+        output.social_security_base_total = other.contract_settings.social_security_base_sum + self.social_security_base
         output.pension_insurance = self.pension_insurance + other.pension_insurance
         output.disability_insurance = self.disability_insurance + other.disability_insurance
         output.sickness_insurance = self.sickness_insurance + other.sickness_insurance
         output.social_insurance_sum = self.social_insurance_sum + other.social_insurance_sum
+        output.author_rights_cost = self.author_rights_cost + other.author_rights_cost
         output.cost = self.cost + other.cost
-        output.cost_fifty_total = self.cost_fifty_total + other.cost_fifty_total
+        output.cost_fifty_total = other.contract_settings.cost_fifty_sum + self.author_rights_cost
         output.regular_cost = self.regular_cost + other.regular_cost
         output.author_rights_cost = self.author_rights_cost + other.author_rights_cost
         output.health_insurance_base = self.health_insurance_base + other.health_insurance_base
         output.tax_base = self.tax_base + other.tax_base
-        output.tax_base_total = self.tax_base_total
+        output.tax_base_total = other.contract_settings.tax_base_sum + self.tax_base
         output.tax = self.tax + other.tax
         output.health_insurance = self.health_insurance + other.health_insurance
         output.ppk_tax = self.ppk_tax + other.ppk_tax
@@ -193,18 +242,18 @@ class Salary[T: ContractOptions]:
         self.salary_sick_pay = self.salary_sick_pay + other.salary_sick_pay
         self.salary_gross = self.salary_gross + other.salary_gross
         self.social_security_base = self.social_security_base + other.social_security_base
-        self.social_security_base_total = self.social_security_base_total
+        self.social_security_base_total = other.contract_settings.social_security_base_sum + self.social_security_base
         self.pension_insurance = self.pension_insurance + other.pension_insurance
         self.disability_insurance = self.disability_insurance + other.disability_insurance
         self.sickness_insurance = self.sickness_insurance + other.sickness_insurance
         self.social_insurance_sum = self.social_insurance_sum + other.social_insurance_sum
-        self.cost = self.cost + other.cost
-        self.cost_fifty_total = self.cost_fifty_total + other.cost_fifty_total
-        self.regular_cost = self.regular_cost + other.regular_cost
         self.author_rights_cost = self.author_rights_cost + other.author_rights_cost
+        self.cost = self.cost + other.cost
+        self.cost_fifty_total = other.contract_settings.cost_fifty_sum + self.author_rights_cost
+        self.regular_cost = self.regular_cost + other.regular_cost
         self.health_insurance_base = self.health_insurance_base + other.health_insurance_base
         self.tax_base = self.tax_base + other.tax_base
-        self.tax_base_total = self.tax_base_total
+        self.tax_base_total = other.contract_settings.tax_base_sum + self.tax_base
         self.tax = self.tax + other.tax
         self.health_insurance = self.health_insurance + other.health_insurance
         self.ppk_tax = self.ppk_tax + other.ppk_tax
@@ -220,4 +269,35 @@ class Salary[T: ContractOptions]:
         self.employer_ppk_contribution = self.employer_ppk_contribution + other.employer_ppk_contribution
         self.total_employer_cost = self.total_employer_cost + other.total_employer_cost
         return self
+
+
+
+    def get_data_frame(self,rows: list[str] | None = None,columns: list[str] | None = None) -> pd.DataFrame:
+        return SalaryExporter.get_data_frame(self.to_dict(), rows, columns)
+
+    def to_excel(self, path: Path):
+        return SalaryExporter.to_excel(self.to_dict(), path)
+
+    def to_json(self, path: Path):
+        return SalaryExporter.to_json(self.to_dict(), path)
+
+    def to_csv(self, path: Path):
+        return SalaryExporter.to_csv(self.to_dict(), path)
+
+
+    # @staticmethod
+    # def _generate_data_frame(contract_simulator_data: dict[str,str | Decimal | bool], columns: list | None = None
+    #                         ) -> pd.DataFrame:
+    #
+    #     # first_key = list(contract_simulator_data.keys())[0]
+    #     if columns is None:
+    #         columns = contract_simulator_data.keys()
+    #     data=contract_simulator_data
+    #     index = [contract_simulator_data.get('name')]
+    #
+    #     df = pd.DataFrame(data,
+    #                     index=index,
+    #                     columns=columns
+    #                     )
+    #     return df
 

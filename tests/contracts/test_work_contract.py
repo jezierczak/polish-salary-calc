@@ -2,7 +2,7 @@ import pytest
 from decimal import Decimal
 
 from polish_salary_calc.contracts.work_contract import WorkContract
-from polish_salary_calc.options.work_contract_options import WorkContractOptions, WorkContractType
+from polish_salary_calc.contract_settings.work_contract_settings import WorkContractSettings, WorkContractType
 from polish_salary_calc.rates.rates import Rates
 from polish_salary_calc.contracts.base_contract import SalaryType
 
@@ -23,9 +23,9 @@ def test_work_contract_common(
         emp_pension:Decimal,emp_disability:Decimal,
         accident:Decimal,fp:Decimal,fgsp:Decimal,total_gross:Decimal
         )->None:
-    work_contract_options = (WorkContractOptions().builder().
-                       set_work_contract_type(WorkContractType.COMMON).
-                       build())
+    work_contract_options = (WorkContractSettings().builder().
+                             set_work_contract_type(WorkContractType.COMMON).
+                             build())
     rates = Rates()
     wc = WorkContract(rates, work_contract_options)
     # salary.update_options(employment_options)
@@ -63,9 +63,9 @@ def test_work_contract_the_same_company_with_50_costs(
         emp_pension:Decimal,emp_disability:Decimal,
         accident:Decimal,fp:Decimal,fgsp:Decimal,total_gross:Decimal
         )->None:
-    work_contract_options = (WorkContractOptions().builder().
-                       set_work_contract_type(WorkContractType.THE_SAME_COMPANY).is_fifty(True).
-                       build())
+    work_contract_options = (WorkContractSettings().builder().
+                             set_work_contract_type(WorkContractType.THE_SAME_COMPANY).is_fifty(True).
+                             build())
     rates = Rates()
     wc = WorkContract(rates, work_contract_options)
     # salary.update_options(employment_options)
@@ -87,9 +87,9 @@ def test_work_contract_the_same_company_with_50_costs(
     assert wc.fgsp == fgsp
     assert wc.total_employer_cost ==total_gross
 
-    work_contract_options2 = (WorkContractOptions().builder().
-                             set_work_contract_type(WorkContractType.THE_SAME_COMPANY).is_fifty(False).
-                             build())
+    work_contract_options2 = (WorkContractSettings().builder().
+                              set_work_contract_type(WorkContractType.THE_SAME_COMPANY).is_fifty(False).
+                              build())
 
     wc2 = WorkContract(rates, work_contract_options2)
     wc2.calculate(Decimal('5000.00'))
@@ -101,10 +101,10 @@ def test_work_contract_the_same_company_with_50_costs(
     assert wc2.net_salary == Decimal('3511.20')
     assert wc2.total_employer_cost == Decimal('6024')
 
-    work_contract_options3 = (WorkContractOptions().builder().
-                             set_work_contract_type(WorkContractType.THE_SAME_COMPANY).is_fifty(False).
-                             set_employee_ppk(Decimal('0.02')).set_employer_ppk(Decimal('0.015')).
-                             build())
+    work_contract_options3 = (WorkContractSettings().builder().
+                              set_work_contract_type(WorkContractType.THE_SAME_COMPANY).is_fifty(False).
+                              set_employee_ppk(Decimal('0.02')).set_employer_ppk(Decimal('0.015')).
+                              build())
     wc2.update_options(work_contract_options3)
     wc2.calculate(Decimal('5000.00'))
 
@@ -117,10 +117,10 @@ def test_work_contract_the_same_company_with_50_costs(
 
 
 def test_work_contract_common_under_200_with_a_lump_sum() -> None:
-    work_options = (WorkContractOptions().builder().
-                           set_work_contract_type(WorkContractType.COMMON).
-                           is_a_lump_sum(True).
-                           build())
+    work_options = (WorkContractSettings().builder().
+                    set_work_contract_type(WorkContractType.COMMON).
+                    is_a_lump_sum(True).
+                    build())
     r = Rates()
     wcc = WorkContract(r, work_options)
         # salary.update_options(employment_options)

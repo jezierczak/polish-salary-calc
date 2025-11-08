@@ -2,7 +2,7 @@ import pytest
 from decimal import Decimal
 
 from polish_salary_calc.contracts.self_employment import SelfEmployment
-from polish_salary_calc.options.self_employment_options import SelfEmploymentOptions, SelfEmploymentType, TaxType, \
+from polish_salary_calc.contract_settings.self_employment_settings import SelfEmploymentSettings, SelfEmploymentType, TaxType, \
     HealthBase
 from polish_salary_calc.rates.rates import Rates
 from polish_salary_calc.contracts.base_contract import SalaryType
@@ -47,7 +47,7 @@ def test_self_employment_common(
         tax_advance:Decimal,net:Decimal,
         accident:Decimal,fp:Decimal,total_gross:Decimal
         )->None:
-    self_employment_options = (SelfEmploymentOptions().
+    self_employment_options = (SelfEmploymentSettings().
                                builder().
                                set_self_employment_type(SelfEmploymentType.COMMON).
                                set_sick_pay(True).
@@ -97,7 +97,7 @@ def test_self_employment_preferred(
         tax_advance:Decimal,net:Decimal,
         accident:Decimal,fp:Decimal,total_gross:Decimal
         )->None:
-    self_employment_options = (SelfEmploymentOptions().
+    self_employment_options = (SelfEmploymentSettings().
                                builder().
                                set_self_employment_type(SelfEmploymentType.PREFERRED).
                                set_sick_pay(True).
@@ -124,13 +124,13 @@ def test_self_employment_preferred(
     assert se.total_employer_cost ==total_gross
 
     #No sick pay
-    se.update_options((SelfEmploymentOptions().
-                               builder().
-                               set_self_employment_type(SelfEmploymentType.PREFERRED).
-                               set_sick_pay(False).
-                               set_costs(Decimal('1000.0')).
-                               set_tax_base_sum(tax_base_sum).
-                               build()))
+    se.update_options((SelfEmploymentSettings().
+                       builder().
+                       set_self_employment_type(SelfEmploymentType.PREFERRED).
+                       set_sick_pay(False).
+                       set_costs(Decimal('1000.0')).
+                       set_tax_base_sum(tax_base_sum).
+                       build()))
 
     assert se.is_calculated == False
 
@@ -159,7 +159,7 @@ def test_self_employment_startup_relief(
         tax_advance:Decimal,net:Decimal,
         accident:Decimal,fp:Decimal,total_gross:Decimal
         )->None:
-    self_employment_options = (SelfEmploymentOptions().
+    self_employment_options = (SelfEmploymentSettings().
                                builder().
                                set_self_employment_type(SelfEmploymentType.STARTUP_RELIEF).
                                set_sick_pay(True).
@@ -204,7 +204,7 @@ def test_self_employment_unregistered_business(
         tax_advance:Decimal,net:Decimal,
         accident:Decimal,fp:Decimal,total_gross:Decimal
         )->None:
-    self_employment_options = (SelfEmploymentOptions().
+    self_employment_options = (SelfEmploymentSettings().
                                builder().
                                set_self_employment_type(SelfEmploymentType.UNREGISTERED_BUSINESS).
                                set_sick_pay(True).
@@ -232,7 +232,7 @@ def test_self_employment_unregistered_business(
 
 def test_self_employment_unregistered_business_exceeded_income_cap() -> None:
     rates = Rates()
-    se = SelfEmployment(rates, SelfEmploymentOptions().builder().set_self_employment_type(SelfEmploymentType.UNREGISTERED_BUSINESS).build())
+    se = SelfEmployment(rates, SelfEmploymentSettings().builder().set_self_employment_type(SelfEmploymentType.UNREGISTERED_BUSINESS).build())
     with pytest.raises(ValueError,match="Salary base for unregistered business exceeded unregistered business income cap") as e:
         se.calculate(Decimal('5000.0'))
 
@@ -261,7 +261,7 @@ def test_self_employment_common_with_linear_tax(
         tax_advance:Decimal,net:Decimal,
         accident:Decimal,fp:Decimal,total_gross:Decimal
         )->None:
-    self_employment_options = (SelfEmploymentOptions().
+    self_employment_options = (SelfEmploymentSettings().
                                builder().
                                set_self_employment_type(SelfEmploymentType.COMMON).
                                set_sick_pay(True).
@@ -358,7 +358,7 @@ def test_self_employment_common_with_a_lump(
         net:Decimal,
         total_gross:Decimal
         )->None:
-    self_employment_options = (SelfEmploymentOptions().
+    self_employment_options = (SelfEmploymentSettings().
                                builder().
                                set_self_employment_type(SelfEmploymentType.COMMON).
                                set_sick_pay(True).
@@ -382,7 +382,7 @@ def test_self_employment_common_with_a_lump(
 
 def test_self_employment_common_with_a_lump_raises_error_wrong_rate()->None:
 
-    self_employment_options = (SelfEmploymentOptions().
+    self_employment_options = (SelfEmploymentSettings().
                                builder().
                                set_self_employment_type(SelfEmploymentType.COMMON).
                                set_tax_type(TaxType.A_LUMP_SUM).

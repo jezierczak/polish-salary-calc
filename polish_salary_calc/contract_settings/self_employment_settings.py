@@ -1,5 +1,5 @@
 
-from polish_salary_calc.options.contract_options import ContractOptions
+from polish_salary_calc.contract_settings.contract_settings import ContractSettngs
 from typing import TypedDict, Self, Unpack
 from dataclasses import dataclass
 from decimal import Decimal
@@ -33,7 +33,7 @@ class SelfEmploymentOptionsDict(TypedDict):
     tax_type: TaxType
     tax_lump_rate: Decimal
     health_base: HealthBase
-    employer_pension_contribution_rate: Decimal
+    # employer_pension_contribution_rate: Decimal
     is_sick_pay: bool
     sick_pay_days: int
     month_days: int
@@ -53,7 +53,7 @@ class SelfEmploymentOptionsDict(TypedDict):
     name:str
 
 @dataclass
-class SelfEmploymentOptions(ContractOptions):
+class SelfEmploymentSettings(ContractSettngs):
 
     self_employment_type: SelfEmploymentType = SelfEmploymentType.COMMON
     tax_type: TaxType = TaxType.STANDARD
@@ -81,7 +81,7 @@ class SelfEmploymentOptions(ContractOptions):
 
     class Builder:
         def __init__(self):
-            self._options = SelfEmploymentOptions()
+            self._options = SelfEmploymentSettings()
 
         def set_self_employment_type(self, self_employment_type: SelfEmploymentType) -> Self:
             self._options.self_employment_type = self_employment_type
@@ -142,5 +142,5 @@ class SelfEmploymentOptions(ContractOptions):
             self._options.name = name
             return self
 
-        def build(self) -> 'SelfEmploymentOptions':
+        def build(self) -> 'SelfEmploymentSettings':
             return self._options

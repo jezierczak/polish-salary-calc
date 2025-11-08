@@ -1,15 +1,22 @@
-from polish_salary_calc.options.contract_options import ContractOptions
+
+from polish_salary_calc.contract_settings.contract_settings import ContractSettngs
 from typing import TypedDict, Self, Unpack
 from dataclasses import dataclass
 from decimal import Decimal
+from enum import Enum
 
-class EmploymentContractDict(TypedDict):
-    increased_costs: bool
-    cost_fifty_ratio: Decimal
-    fp_fgsp: bool
-    active_business: bool
-    under_26: bool
-    sick_pay: Decimal
+class MandateContractType(Enum):
+    COMMON = 1
+    THE_SAME_COMPANY = 2
+    OTHER_COMPANY_MIN_SALARY=3
+    UNDER_26_AND_STUDENT =4
+
+class MandateContractOptionsDict(TypedDict):
+    mandate_contract_type: MandateContractType
+    is_fifty: bool
+    fp: bool
+    fgsp: bool
+    is_a_lump_sum:bool #ryczałt
     current_month_gross_sum: Decimal
     social_security_base_sum: Decimal
     cost_fifty_sum: Decimal
@@ -21,13 +28,12 @@ class EmploymentContractDict(TypedDict):
     name: str
 
 @dataclass
-class EmploymentContractOptions(ContractOptions):
-    increased_costs: bool = False
-    cost_fifty_ratio: Decimal = Decimal('0.0')
-    fp_fgsp: bool = False
-    active_business: bool = False
-    under_26: bool = False
-    sick_pay: Decimal = Decimal('0.0')
+class MandateContractSettings(ContractSettngs):
+    mandate_contract_type: MandateContractType = MandateContractType.COMMON
+    is_fifty: bool = False
+    fp: bool = False
+    fgsp: bool = False
+    is_a_lump_sum: bool = False
     # current_month_gross_sum: Decimal = Decimal('0.0')
     # social_security_base_sum: Decimal = Decimal('0.0')
     # cost_fifty_sum: Decimal = Decimal('0.0')
@@ -36,39 +42,36 @@ class EmploymentContractOptions(ContractOptions):
     # employer_ppk: Decimal = Decimal('0.0')
     # accident_insurance_rate: Decimal | None = None
 
-    def to_dict(self) ->Unpack[EmploymentContractDict]:
+    def to_dict(self) ->Unpack[MandateContractOptionsDict]:
         return self.__dict__
 
     @classmethod
-    def from_dict(cls, data: EmploymentContractDict) -> Self:
+    def from_dict(cls, data: MandateContractOptionsDict) -> Self:
         return cls(**data)
 
     @classmethod
-    def builder(cls) -> 'OptionsBuilder':
-        return cls.OptionsBuilder()
+    def builder(cls) -> 'Builder':
+        return cls.Builder()
 
-
-    class OptionsBuilder:
+    class Builder:
         def __init__(self):
-            self._options = EmploymentContractOptions()
+            self._options = MandateContractSettings()
 
-        def is_increased_costs(self, increased_costs: bool) -> Self:
-            self._options.increased_costs = increased_costs
+        def set_mandate_contract_type(self, contract_type: MandateContractType) -> Self:
+            self._options.mandate_contract_type = contract_type
             return self
-        def set_cost_fifty_ratio(self, cost_fifty_ratio: Decimal) -> Self:
-            self._options.cost_fifty_ratio = cost_fifty_ratio
+        def is_fifty(self, is_fifty: bool) -> Self:
+            self._options.is_fifty = is_fifty
             return self
-        def is_fp_fgsp(self, is_fp_fgsp: bool) -> Self:
-            self._options.fp_fgsp = is_fp_fgsp
+        def is_fp(self, is_fp: bool) -> Self:
+            self._options.fp = is_fp
             return self
-        def is_active_business(self, active_business: bool) -> Self:
-            self._options.active_business = active_business
+        def is_fgsp(self, is_fgsp: bool) -> Self:
+            self._options.fgsp = is_fgsp
             return self
-        def is_under_26(self, under_26: bool) -> Self:
-            self._options.under_26 = under_26
-            return self
-        def set_sick_pay(self, sick_pay: Decimal) -> Self:
-            self._options.sick_pay = sick_pay
+
+        def  is_a_lump_sum(self,  is_a_lump_sum: bool) -> Self:
+            self._options. is_a_lump_sum =  is_a_lump_sum
             return self
         def set_current_month_gross_sum(self, current_month_gross_sum: Decimal) -> Self:
             self._options.current_month_gross_sum = current_month_gross_sum
@@ -97,5 +100,5 @@ class EmploymentContractOptions(ContractOptions):
         def set_name(self,name: str) -> Self:
             self._options.name = name
             return self
-        def build(self) -> 'EmploymentContractOptions':
+        def build(self) -> 'MandateContractSettings':
             return self._options

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 from decimal import Decimal
 
 from polish_salary_calc.contracts.employment_contract import EmploymentContract
-from polish_salary_calc.options.employment_contract_options import EmploymentContractOptions
+from polish_salary_calc.contract_settings.employment_contract_settings import EmploymentContractSettings
 from polish_salary_calc.rates.rates import Rates
 from polish_salary_calc.contracts.base_contract import SalaryType
 
@@ -12,15 +12,15 @@ from polish_salary_calc.contracts.base_contract import SalaryType
 def employment_contract_mock_6000_gross() -> MagicMock:
     employment_contract = MagicMock(spec=EmploymentContract)
     employment_contract.rates = Rates()
-    employment_contract.options = (EmploymentContractOptions().builder().
-                             is_increased_costs(True).
-                             #set_cost_fifty_ratio(Decimal('0.15')).
-                             is_active_business(True).
-                             is_fp_fgsp(True).
-                             #set_employee_ppk(Decimal('0.02')).
-                             #set_employer_ppk(Decimal('0.015')).
-                             is_under_26(False).
-                             build())
+    employment_contract.options = (EmploymentContractSettings().builder().
+                                   is_increased_costs(True).
+                                   #set_cost_fifty_ratio(Decimal('0.15')).
+                                   is_active_business(True).
+                                   is_fp_fgsp(True).
+                                   #set_employee_ppk(Decimal('0.02')).
+                                   #set_employer_ppk(Decimal('0.015')).
+                                   is_under_26(False).
+                                   build())
 
     employment_contract.input_salary = Decimal('6000')
 
@@ -62,30 +62,30 @@ def employment_contract_mock_6000_gross() -> MagicMock:
 
 def test_employment_contract_6000_gross(employment_contract_mock_6000_gross) -> None:
     rates = Rates()
-    options = (EmploymentContractOptions().builder().
-                             is_increased_costs(True).
-                             #set_cost_fifty_ratio(Decimal('0.15')).
-                             is_active_business(True).
-                             is_fp_fgsp(False).
-                             #set_employee_ppk(Decimal('0.02')).
-                             #set_employer_ppk(Decimal('0.015')).
-                             is_under_26(False).
-                             build())
+    options = (EmploymentContractSettings().builder().
+               is_increased_costs(True).
+               #set_cost_fifty_ratio(Decimal('0.15')).
+               is_active_business(True).
+               is_fp_fgsp(False).
+               #set_employee_ppk(Decimal('0.02')).
+               #set_employer_ppk(Decimal('0.015')).
+               is_under_26(False).
+               build())
     ec= EmploymentContract(rates,options)
     ec.calculate(Decimal('6000'), SalaryType.GROSS)
     assert ec.salary_gross == employment_contract_mock_6000_gross.salary_gross
     assert ec.net_salary ==employment_contract_mock_6000_gross.net_salary
 
-    options2 = (EmploymentContractOptions().builder().
-                             is_increased_costs(True).
-                             set_cost_fifty_ratio(Decimal('0.5')).
-                             is_active_business(False).
-                             is_fp_fgsp(False).
-                             set_employee_ppk(Decimal('0.02')).
-                             set_employer_ppk(Decimal('0.015')).
-                             is_under_26(False).
-                             set_accident_insurance_rate(Decimal('0.2')).
-                             build())
+    options2 = (EmploymentContractSettings().builder().
+                is_increased_costs(True).
+                set_cost_fifty_ratio(Decimal('0.5')).
+                is_active_business(False).
+                is_fp_fgsp(False).
+                set_employee_ppk(Decimal('0.02')).
+                set_employer_ppk(Decimal('0.015')).
+                is_under_26(False).
+                set_accident_insurance_rate(Decimal('0.2')).
+                build())
 
     ec.update_options(options2)
     ec.calculate(Decimal('6000'), SalaryType.GROSS)
@@ -95,7 +95,8 @@ def test_employment_contract_6000_gross(employment_contract_mock_6000_gross) -> 
     assert ec.employee_ppk_contribution == Decimal('120.00')
     assert ec.employer_ppk_contribution == Decimal('90.00')
 
-    options_3 = EmploymentContractOptions().from_dict({
+    options_3 = EmploymentContractSettings().from_dict({
+        'name': '',
         'sick_pay': Decimal('1000.00'),
         'current_month_gross_sum':Decimal('20000.00'),
         'social_security_base_sum':Decimal('20000.00'),
@@ -122,12 +123,12 @@ def test_employment_contract_6000_gross(employment_contract_mock_6000_gross) -> 
     assert ec.cost_fifty_total == options_3.cost_fifty_sum
     assert ec.total_markups == Decimal('3866.37')
     assert ec.total_markups_ratio == (ec.total_markups/ec.total_employer_cost*100).quantize(Decimal('0.01'))
-    assert ec.brutto_ratio == (ec.salary_gross / ec.total_employer_cost * 100).quantize(Decimal('0.01'))
+    assert ec.gross_ratio == (ec.salary_gross / ec.total_employer_cost * 100).quantize(Decimal('0.01'))
     assert ec.net_ratio ==  (ec.net_salary / ec.total_employer_cost * 100).quantize(Decimal('0.01'))
 
 def test_employment_contract_6000_gross_wrong_ppk() -> None:
     rates = Rates()
-    options = EmploymentContractOptions().builder().set_employee_ppk(Decimal('0.1')).set_employer_ppk(Decimal('0.01')).build()
+    options = EmploymentContractSettings().builder().set_employee_ppk(Decimal('0.1')).set_employer_ppk(Decimal('0.01')).build()
     with pytest.raises(ValueError, match='Employer or employee PPK rate is too small'):
         ec = EmploymentContract(rates, options)
         ec.calculate(Decimal('6000'),SalaryType.GROSS)
@@ -155,7 +156,7 @@ def test_employment_contract_small_cost_no_fgsp_no_ppk(
         accident:Decimal,fp:Decimal,fgsp:Decimal,total_gross:Decimal
         )->None:
     rates = Rates()
-    options = (EmploymentContractOptions().builder().
+    options = (EmploymentContractSettings().builder().
                is_increased_costs(False).
                is_active_business(False).
                is_fp_fgsp(True).

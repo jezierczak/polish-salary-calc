@@ -1,4 +1,4 @@
-from polish_salary_calc.options.contract_options import ContractOptions
+from polish_salary_calc.contract_settings.contract_settings import ContractSettngs
 from decimal import Decimal, ROUND_UP
 from polish_salary_calc.salary.salary import Salary,SalaryType
 from polish_salary_calc.rates.rates import Rates
@@ -6,36 +6,28 @@ from polish_salary_calc.salary.salary_utilities import SalaryUtilities
 from abc import ABC, abstractmethod
 
 
-class BaseContract[T: ContractOptions](Salary, ABC):
-    def __init__(self, rates: Rates, options: T) -> None:
-        super().__init__()
+class BaseContract[T: ContractSettngs](Salary, ABC):
+    def __init__(self, rates: Rates, contract_settings: T) -> None:
+        super().__init__(rates,contract_settings)
+        self.rates = rates
+        self.contract_settings = contract_settings
 
-        self.rates: Rates = rates
-        self.options: T = options
-
-        if self.options.name is None:
-            self.name = self._generate_name_from_date()
-        else:
-            self.name = self.options.name
-
-        if 0 < self.options.employer_ppk < Decimal('0.015') or 0 < self.options.employee_ppk < Decimal('0.02'):
-            raise ValueError('Employer or employee PPK rate is too small')
 
     def update_rates(self, rates: Rates) -> None:
         self.rates = rates
         self.is_calculated = False
 
     def update_options(self, options: T) -> None:
-        self.options = options
-        if 0 < self.options.employer_ppk < Decimal('0.015') or 0 < self.options.employee_ppk < Decimal('0.02'):
+        self.contract_settings = options
+        if 0 < self.contract_settings.employer_ppk < Decimal('0.015') or 0 < self.contract_settings.employee_ppk < Decimal('0.02'):
             raise ValueError('Employer or employee PPK is too small')
         self.is_calculated = False
 
     def get_rates(self) -> Rates:
         return self.rates
 
-    def get_options(self) -> ContractOptions:
-        return self.__dict__['options']
+    def get_options(self) -> ContractSettngs:
+        return self.__dict__['contract_settings']
 
     def calculate_salary_base(self) -> Decimal:
         return self.input_salary
@@ -51,13 +43,13 @@ class BaseContract[T: ContractOptions](Salary, ABC):
         return self.salary_base
 
     def calculate_social_security_base_total(self) -> Decimal:
-        return self.options.social_security_base_sum + self.social_security_base
+        return self.contract_settings.social_security_base_sum + self.social_security_base
 
     def calculate_pension_insurance(self) -> Decimal:
         return SalaryUtilities.calculate_pension_or_disability_insurance(
             self.rates.pension_insurance_rate,
             self.social_security_base,
-            self.options.social_security_base_sum,
+            self.contract_settings.social_security_base_sum,
             self.rates.social_insurance_cap
         )
 
@@ -65,7 +57,7 @@ class BaseContract[T: ContractOptions](Salary, ABC):
         return SalaryUtilities.calculate_pension_or_disability_insurance(
             self.rates.disability_insurance_rate,
             self.social_security_base,
-            self.options.social_security_base_sum,
+            self.contract_settings.social_security_base_sum,
             self.rates.social_insurance_cap
         )
 
@@ -88,7 +80,7 @@ class BaseContract[T: ContractOptions](Salary, ABC):
         return self.author_rights_cost + self.regular_cost
 
     def calculate_cost_fifty_total(self) -> Decimal:
-        return self.options.cost_fifty_sum + self.author_rights_cost
+        return self.contract_settings.cost_fifty_sum + self.author_rights_cost
 
     def calculate_health_insurance_base(self) -> Decimal:
         return self.salary_gross - (self.pension_insurance + self.disability_insurance + self.sickness_insurance)
@@ -100,7 +92,7 @@ class BaseContract[T: ContractOptions](Salary, ABC):
         return self.salary_gross - self.social_insurance_sum - self.cost
 
     def calculate_tax_base_total(self)  ->Decimal:
-        return self.options.tax_base_sum + self.tax_base
+        return self.contract_settings.tax_base_sum + self.tax_base
 
     @abstractmethod
     def calculate_tax(self) -> Decimal:
@@ -113,7 +105,7 @@ class BaseContract[T: ContractOptions](Salary, ABC):
 
 
     def calculate_ppk_tax(self) -> Decimal:
-        return self.social_security_base * self.options.employer_ppk * self.rates.income_tax[0]
+        return self.social_security_base * self.contract_settings.employer_ppk * self.rates.income_tax[0]
 
 
     def calculate_tax_advance_payment(self) -> Decimal:
@@ -121,10 +113,10 @@ class BaseContract[T: ContractOptions](Salary, ABC):
 
 
     def calculate_salary_deductions(self) -> Decimal:
-        return self.options.salary_deductions
+        return self.contract_settings.salary_deductions
 
     def calculate_employee_ppk_contribution(self) -> Decimal:
-        return self.social_security_base * self.options.employee_ppk
+        return self.social_security_base * self.contract_settings.employee_ppk
 
     def calculate_net_salary(self) -> Decimal:
         return self.salary_gross - (
@@ -134,7 +126,7 @@ class BaseContract[T: ContractOptions](Salary, ABC):
         return SalaryUtilities.calculate_pension_or_disability_insurance(
             self.rates.employer_pension_contribution_rate,
             self.social_security_base,
-            self.options.social_security_base_sum,
+            self.contract_settings.social_security_base_sum,
             self.rates.social_insurance_cap
         )
 
@@ -143,18 +135,18 @@ class BaseContract[T: ContractOptions](Salary, ABC):
         return SalaryUtilities.calculate_pension_or_disability_insurance(
             self.rates.employer_disability_contribution_rate,
             self.social_security_base,
-            self.options.social_security_base_sum,
+            self.contract_settings.social_security_base_sum,
             self.rates.social_insurance_cap
         )
 
 
     def calculate_accident_insurance(self) -> Decimal:
-        if self.options.accident_insurance_rate is None:
+        if self.contract_settings.accident_insurance_rate is None:
             return  self.social_security_base * self.rates.accident_insurance_rate
-        return self.social_security_base * self.options.accident_insurance_rate
+        return self.social_security_base * self.contract_settings.accident_insurance_rate
 
     def calculate_fp(self) -> Decimal:
-        if self.options.current_month_gross_sum + self.salary_gross >= self.rates.minimum_wage:
+        if self.contract_settings.current_month_gross_sum + self.salary_gross >= self.rates.minimum_wage:
             return self.social_security_base * self.rates.fp_rate
         else:
             return Decimal('0')
@@ -163,15 +155,15 @@ class BaseContract[T: ContractOptions](Salary, ABC):
         return self.social_security_base * self.rates.fgsp_rate
 
     def calculate_employer_ppk_contribution(self) -> Decimal:
-        return self.social_security_base*self.options.employer_ppk
+        return self.social_security_base*self.contract_settings.employer_ppk
 
     def calculate_total_employer_cost(self) -> Decimal:
         return self.salary_gross + self.employer_pension_contribution + self.employer_disability_contribution + self.accident_insurance + self.fp + self.fgsp + self.employer_ppk_contribution
 
 
     def calculate(self, salary_base: Decimal, salary_type: SalaryType = SalaryType.GROSS) -> None:
-        if self.options is None:
-            raise AttributeError('No options set to contract, use "update_options" before calculating')
+        if self.contract_settings is None:
+            raise AttributeError('No contract_settings set to contract, use "update_options" before calculating')
         self.input_salary = salary_base
         if salary_type == SalaryType.GROSS:
             self.calculate_gross()

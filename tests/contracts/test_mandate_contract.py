@@ -2,7 +2,7 @@ import pytest
 from decimal import Decimal
 
 from polish_salary_calc.contracts.mandate_contract import MandateContract
-from polish_salary_calc.options.mandate_contract_options import MandateContractOptions, MandateContractType
+from polish_salary_calc.contract_settings.mandate_contract_settings import MandateContractSettings, MandateContractType
 from polish_salary_calc.rates.rates import Rates
 from polish_salary_calc.contracts.base_contract import SalaryType
 
@@ -22,7 +22,7 @@ def test_mandate_contract_common_with_and_without_fp_fgsp_ppk(
         emp_pension:Decimal,emp_disability:Decimal,
         accident:Decimal,fp:Decimal,fgsp:Decimal,total_gross:Decimal
         )->None:
-    mandate_options = (MandateContractOptions().builder().
+    mandate_options = (MandateContractSettings().builder().
                        set_mandate_contract_type(MandateContractType.COMMON).
                        is_fifty(False).
                        build())
@@ -47,7 +47,7 @@ def test_mandate_contract_common_with_and_without_fp_fgsp_ppk(
     assert mc.fgsp == fgsp
     assert mc.total_employer_cost ==total_gross
 
-    mandate_options2 = (MandateContractOptions().builder().
+    mandate_options2 = (MandateContractSettings().builder().
                         set_mandate_contract_type(MandateContractType.COMMON).
                         is_fp(True).
                         is_fgsp(True).
@@ -59,7 +59,7 @@ def test_mandate_contract_common_with_and_without_fp_fgsp_ppk(
     assert mc.fgsp == salary_base * rates.fgsp_rate
     assert mc.total_employer_cost ==total_gross+mc.fp + mc.fgsp
 
-    mandate_options3 = (MandateContractOptions().builder().
+    mandate_options3 = (MandateContractSettings().builder().
                         set_mandate_contract_type(MandateContractType.COMMON).
                         is_fp(False).
                         is_fgsp(False).
@@ -72,8 +72,8 @@ def test_mandate_contract_common_with_and_without_fp_fgsp_ppk(
     assert mc.is_calculated == True
     assert mc.fp == Decimal('0.0')
     assert mc.fgsp == Decimal('0.0')
-    assert mc.employee_ppk_contribution == Decimal('6000') * mc.options.employee_ppk
-    assert mc.employer_ppk_contribution == Decimal('6000') * mc.options.employer_ppk
+    assert mc.employee_ppk_contribution == Decimal('6000') * mc.contract_settings.employee_ppk
+    assert mc.employer_ppk_contribution == Decimal('6000') * mc.contract_settings.employer_ppk
     assert mc.net_salary == Decimal('4503.20')
     assert mc.total_employer_cost == Decimal('7165.80')
 
@@ -93,7 +93,7 @@ def test_mandate_contract_the_same_company_with_20_and_50_costs(
         emp_pension:Decimal,emp_disability:Decimal,
         accident:Decimal,fp:Decimal,fgsp:Decimal,total_gross:Decimal
         )->None:
-    mandate_options = (MandateContractOptions().builder().
+    mandate_options = (MandateContractSettings().builder().
                        set_mandate_contract_type(MandateContractType.THE_SAME_COMPANY).
                        is_fifty(False).
                        is_fp(True).
@@ -125,12 +125,12 @@ def test_mandate_contract_the_same_company_with_20_and_50_costs(
     assert mc2.net_salary == mc.net_salary
     assert mc2.salary_gross == mc.salary_gross
 
-    mandate_options2 = (MandateContractOptions().builder().
-                       set_mandate_contract_type(MandateContractType.THE_SAME_COMPANY).
-                       is_fifty(True).
-                       is_fp(True).
-                       is_fgsp(True).
-                       build())
+    mandate_options2 = (MandateContractSettings().builder().
+                        set_mandate_contract_type(MandateContractType.THE_SAME_COMPANY).
+                        is_fifty(True).
+                        is_fp(True).
+                        is_fgsp(True).
+                        build())
     mc.update_options(mandate_options2)
     rates['description'] ="new description"
     mc.update_rates(rates)
@@ -155,7 +155,7 @@ def test_mandate_contract_the_same_company_with_20_costs(
         emp_pension:Decimal,emp_disability:Decimal,
         accident:Decimal,fp:Decimal,fgsp:Decimal,total_gross:Decimal
         )->None:
-    mandate_options = (MandateContractOptions().builder().
+    mandate_options = (MandateContractSettings().builder().
                        set_mandate_contract_type(MandateContractType.OTHER_COMPANY_MIN_SALARY).
                        is_fifty(False).
                        is_fp(False).
@@ -184,7 +184,7 @@ def test_mandate_contract_the_same_company_with_20_costs(
 
 
 def test_mandate_contract_under_26()->None:
-    mandate_options = (MandateContractOptions().builder().
+    mandate_options = (MandateContractSettings().builder().
                        set_mandate_contract_type(MandateContractType.UNDER_26_AND_STUDENT).
                        build())
     rates = Rates()
@@ -201,9 +201,9 @@ def test_mandate_contract_under_26()->None:
 
 
 def test_mandate_contract_common_under_200_with_a_lump_sum()->None:
-    mandate_options = (MandateContractOptions().builder().
+    mandate_options = (MandateContractSettings().builder().
                        set_mandate_contract_type(MandateContractType.COMMON).
-                        is_a_lump_sum(True).
+                       is_a_lump_sum(True).
                        build())
     rates = Rates()
     mc = MandateContract(rates, mandate_options)
@@ -219,8 +219,8 @@ def test_mandate_contract_common_under_200_with_a_lump_sum()->None:
 
 
 def test_mandate_contract_unknown_contract_type()->None:
-    mandate_options = (MandateContractOptions().builder().
-                       set_mandate_contract_type(5).
+    mandate_options = (MandateContractSettings().builder().
+                       set_mandate_contract_type(5). #type: ignore
                        build())
     rates = Rates()
     mc = MandateContract(rates, mandate_options)
