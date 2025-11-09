@@ -1,12 +1,8 @@
-from calendar import Month
 from pathlib import Path
 
-import pandas
-
-from polish_salary_calc.console_printer.salary_console_printer import SalaryConsolePrinter
 from polish_salary_calc.contract_settings.mandate_contract_settings import MandateContractSettings, MandateContractType
 from polish_salary_calc.contract_settings.work_contract_settings import WorkContractSettings, WorkContractType
-from polish_salary_calc.contracts.self_employment import SelfEmployment
+
 from polish_salary_calc.contract_settings.self_employment_settings import SelfEmploymentSettings, SelfEmploymentType, TaxType, \
     HealthBase
 from polish_salary_calc.contracts.work_contract import WorkContract
@@ -15,27 +11,27 @@ from polish_salary_calc.contracts.base_contract import SalaryType
 
 from polish_salary_calc.contract_settings.employment_contract_settings import EmploymentContractSettings
 
-from polish_salary_calc.contracts.employment_contract import EmploymentContract
-
 from decimal import Decimal
 
 from polish_salary_calc.summary.contract_summary import YearContractService, Months
 
-import pandas as pd
-
 
 def main() -> None:
     rates = Rates()
+    path2 = Path("./data")
+    path2.mkdir(parents=True, exist_ok=True)
+    # print(rates.to_json(path2 / "rates.json"))
 
     employment_options = (EmploymentContractSettings().builder().
                           is_increased_costs(True).
                           is_active_business(False).
                           is_under_26(False).
-                          set_name("NAME CHANGED").
+                          # set_name("NAME CHANGED").
                           # set_employee_ppk(Decimal("0.02")).
                           # set_employer_ppk(Decimal("0.015")).
                           is_fp_fgsp(True).
                           build())
+    # print(employment_options)
     # salary = EmploymentContract(rates,employment_options)
     # salary.calculate(Decimal('10000'), SalaryType.GROSS)
 
@@ -84,9 +80,9 @@ def main() -> None:
                     set_work_contract_type(WorkContractType.COMMON).
                     build())
     salary3 = WorkContract(rates, work_options)
-    salary3.calculate(Decimal('200'), SalaryType.GROSS)
+    salary3.calculate(Decimal('8000'), SalaryType.NET)
 
-    print(salary3.get_rates())
+    # print(salary3.get_rates())
     # print(salary3.get_options())
     # for k, i in salary3.get_all_output().items():
     #     print(f'{k:20.20}: {i}')
@@ -135,16 +131,22 @@ def main() -> None:
     # yc3 = YearContractService(rates, work_options, Decimal("12000"),SalaryType.NET)
     # yc3.calculate()
     # print(yc3.get_data_frame(rows=["summary"]))
-    yc4 = YearContractService(rates, employment_options, Decimal("12000"),SalaryType.NET)
+    yc4 = YearContractService(rates, employment_options, Decimal("8000"),SalaryType.NET)
     # yc4.modify_month_contracts([Months.APR,Months.MAY],salary_base= Decimal("12000"))
     # yc4.modify_month_contracts([Months.JAN,], salary_base=Decimal("0"), enabled=False)
 
 
 
-    # path = Path("./data")
-    # path.mkdir(parents=True, exist_ok=True)
-    # yc4.calculate()
-    # print(yc4.all_to_json(path / "jsonyc4.json"))
+    path = Path("./data")
+    path.mkdir(parents=True, exist_ok=True)
+    yc4.calculate()
+
+    print(salary3.compare_to(yc4["JUL"]))
+
+    # print(yc4.compare_to(yc4))
+
+
+    # print(yc4.to_excel(path / 'salary8000.xlsx'))
     # yc4.all_to_json(path / "salary4.json")
     # print(yc4.to_csv(path / "plik1.csv"))
     # print(yc4['JUL'].to_csv(path / "plik2.csv"))

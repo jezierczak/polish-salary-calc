@@ -28,7 +28,6 @@ class WorkContractSettings(ContractSettngs):
     is_fifty: bool = False
     is_a_lump_sum: bool = False
 
-
     def to_dict(self) ->Unpack[WorkContractOptionsDict]:
         return self.__dict__
 
@@ -37,10 +36,10 @@ class WorkContractSettings(ContractSettngs):
         return cls(**data)
 
     @classmethod
-    def builder(cls) -> 'Builder':
-        return cls.Builder()
+    def builder(cls) -> 'SettingsBuilder':
+        return cls.SettingsBuilder()
 
-    class Builder:
+    class SettingsBuilder:
         def __init__(self):
             self._options = WorkContractSettings()
 

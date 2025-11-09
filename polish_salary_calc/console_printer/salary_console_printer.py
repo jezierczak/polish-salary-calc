@@ -1,14 +1,19 @@
+from abc import abstractmethod
 from dataclasses import dataclass
 
 from polish_salary_calc.console_printer.abstract_salary_console_printer import AbstractSalaryConsolePrinter
-from polish_salary_calc.salary.salary_utilities import SalaryUtilities
+from polish_salary_calc.salary.salaryexporter import SalaryExporter, SalaryExporterDict
 
 
 @dataclass
-class SalaryConsolePrinter(AbstractSalaryConsolePrinter):
+class SalaryConsolePrinter(AbstractSalaryConsolePrinter, SalaryExporter):
+
+    @abstractmethod
+    def to_exporter_dict(self) -> SalaryExporterDict:
+        pass
 
     def print_rates(self) -> str:
-        rates_dict = self.contract.get_rates().to_dict()
+        rates_dict = self.contract.get_rates().to_exporter_dict()
         print(f"\nRates ")
 
         return SalaryUtilities.print_dict(rates_dict)
@@ -16,18 +21,13 @@ class SalaryConsolePrinter(AbstractSalaryConsolePrinter):
 
     def print_options(self) -> str:
         print(f"\n{self.contract.get_options().options_type()}")
-        options_dict = self.contract.get_options().to_dict()
+        options_dict = self.contract.get_options().to_exporter_dict()
         return SalaryUtilities.print_dict(options_dict)
 
         # return self._print_pandas_dict(options_dict).to_string()
 
     def print_contract(self) -> str:
-        print(f"\n{self.contract.get_contract_type()}: {self.contract.name} ... created time: {self.contract.created_datetime}")
-        contract_dict = self.contract.to_dict()
-        del contract_dict['created_datetime']
-        del contract_dict['name']
-        return SalaryUtilities.print_dict(contract_dict)
-        # return self._print_pandas_dict(contract_dict).to_string()
+        return self.to_string()
 
     def print_all(self) -> str:
         return self.print_rates() +"\n"+ self.print_options() +"\n"+ self.print_contract()

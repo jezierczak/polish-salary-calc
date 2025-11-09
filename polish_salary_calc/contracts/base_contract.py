@@ -27,7 +27,7 @@ class BaseContract[T: ContractSettngs](Salary, ABC):
         return self.rates
 
     def get_options(self) -> ContractSettngs:
-        return self.__dict__['contract_settings']
+        return self.contract_settings
 
     def calculate_salary_base(self) -> Decimal:
         return self.input_salary

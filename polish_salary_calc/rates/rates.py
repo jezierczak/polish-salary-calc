@@ -1,10 +1,9 @@
-from typing import TypedDict, Unpack
+from typing import TypedDict, Unpack, override
 from decimal import Decimal
 from dataclasses import dataclass
 from typing import Self
 
-from polish_salary_calc.salary.salary_utilities import SalaryUtilities
-
+from polish_salary_calc.salary.salaryexporter import SalaryExporter
 
 class RatesDict(TypedDict):
     description: str
@@ -35,7 +34,7 @@ class RatesDict(TypedDict):
     social_insurance_cap: Decimal
 
 @dataclass
-class Rates:
+class Rates(SalaryExporter):
 
     description: str = 'Default Rates (2025 year second half)'
     pension_insurance_rate: Decimal = Decimal('0.0976')
@@ -67,15 +66,21 @@ class Rates:
     @property
     def tax_free(self) -> Decimal:
         return self.income_tax[0] * self.tax_free_base
+
     @property
     def month_tax_free(self) -> Decimal:
         return self.tax_free/12
+
     @classmethod
     def from_dict(cls,data: RatesDict) -> Self:
         return cls(**data)
 
     def to_dict(self) -> Unpack[RatesDict]:
         return self.__dict__
+
+    @override
+    def to_exporter_dict(self) -> dict[str, dict[str, str | Decimal | bool]]:
+        return {self.__class__.__name__:self.to_dict()}
 
     def __getitem__(self, item: str) -> Decimal | str:
         return getattr(self, item)
@@ -85,5 +90,6 @@ class Rates:
             setattr(self, key, value)
         else:
             raise KeyError(f'Attribute {key} not found.')
+
     def __str__(self) -> str:
-        return SalaryUtilities.print_dict(self.to_dict())
+        return self.to_string()

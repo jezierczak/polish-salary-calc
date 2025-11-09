@@ -76,17 +76,16 @@ class SelfEmploymentSettings(ContractSettngs):
         return cls(**data)
 
     @classmethod
-    def builder(cls) -> 'Builder':
-        return cls.Builder()
+    def builder(cls) -> 'SettingsBuilder':
+        return cls.SettingsBuilder()
 
-    class Builder:
+    class SettingsBuilder:
         def __init__(self):
             self._options = SelfEmploymentSettings()
 
         def set_self_employment_type(self, self_employment_type: SelfEmploymentType) -> Self:
             self._options.self_employment_type = self_employment_type
             return self
-
         def set_tax_type(self, tax_type: TaxType) -> Self:
             self._options.tax_type = tax_type
             return self
@@ -96,17 +95,14 @@ class SelfEmploymentSettings(ContractSettngs):
         def set_health_base(self, health_base: HealthBase) -> Self:
             self._options.health_base = health_base
             return self
-
         def set_sick_pay(self,  is_sick_pay: bool, sick_pay_days: int = 0, month_days: int = 0) -> Self:
             self._options.is_sick_pay =  is_sick_pay
             self._options.sick_pay_days = sick_pay_days
             self._options.month_days = month_days
             return self
-
         def is_fp(self, is_fp: bool) -> Self:
             self._options.is_fp = is_fp
             return self
-
         def is_other_minimum_contract(self, other_minimum_contract: bool) -> Self:
             self._options.other_minimum_contract = other_minimum_contract
             return self
@@ -118,29 +114,23 @@ class SelfEmploymentSettings(ContractSettngs):
         def set_costs(self, costs: Decimal) -> Self:
             self._options.costs = costs
             return self
-
         def set_current_month_gross_sum(self, current_month_gross_sum: Decimal) -> Self:
              self._options.current_month_gross_sum = current_month_gross_sum
              return self
         def set_social_security_base_sum(self, social_security_base_sum: Decimal) -> Self:
             self._options.social_security_base_sum = social_security_base_sum
             return self
-
         def set_tax_base_sum(self, tax_base_sum: Decimal) -> Self:
             self._options.tax_base_sum = tax_base_sum
             return self
-
         def set_accident_insurance_rate(self, accident_insurance_rate: Decimal | None) -> Self:
              self._options.accident_insurance_rate = accident_insurance_rate
              return self
-
         def set_salary_deductions(self, salary_deductions: Decimal) -> Self:
             self._options.salary_deductions = salary_deductions
             return self
-
         def set_name(self,name: str) -> Self:
             self._options.name = name
             return self
-
         def build(self) -> 'SelfEmploymentSettings':
             return self._options

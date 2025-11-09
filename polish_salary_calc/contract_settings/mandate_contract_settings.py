@@ -50,10 +50,10 @@ class MandateContractSettings(ContractSettngs):
         return cls(**data)
 
     @classmethod
-    def builder(cls) -> 'Builder':
-        return cls.Builder()
+    def builder(cls) -> 'SettingsBuilder':
+        return cls.SettingsBuilder()
 
-    class Builder:
+    class SettingsBuilder:
         def __init__(self):
             self._options = MandateContractSettings()
 
@@ -69,7 +69,6 @@ class MandateContractSettings(ContractSettngs):
         def is_fgsp(self, is_fgsp: bool) -> Self:
             self._options.fgsp = is_fgsp
             return self
-
         def  is_a_lump_sum(self,  is_a_lump_sum: bool) -> Self:
             self._options. is_a_lump_sum =  is_a_lump_sum
             return self

@@ -3,8 +3,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class AbstractSalaryConsolePrinter[T](ABC):
-    contract: T
+class AbstractSalaryConsolePrinter(ABC):
 
     @abstractmethod
     def print_rates(self) -> str:

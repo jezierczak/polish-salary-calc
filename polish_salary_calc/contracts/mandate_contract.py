@@ -32,10 +32,6 @@ class MandateContract(BaseContract[MandateContractSettings]):
                 return super().calculate_social_security_base()
             case _: raise NotImplementedError(f'Unknown mandate contract type:  {self.contract_settings.mandate_contract_type}')
 
-    # @override
-    # def _calculate_social_security_base_total(self) -> Decimal:
-    #     return self.contract_settings.social_security_base_sum + self.social_security_base
-
     @override
     def calculate_pension_insurance(self) -> Decimal:
         match self.contract_settings.mandate_contract_type:
@@ -66,16 +62,8 @@ class MandateContract(BaseContract[MandateContractSettings]):
             case _:
                 raise NotImplementedError(f'Unknown mandate contract type:  {self.contract_settings.mandate_contract_type}')
 
-
-    # @override
-    # def _calculate_social_insurance_sum(self) -> Decimal:
-    #     return self.pension_insurance + self.disability_insurance + self.sickness_insurance
-
     @override
     def calculate_cost(self) -> Decimal:
-        #if self.podst_podatek * (1 - self.contract_settings.cost_fifty_ratio) - self._calculate_koszt_norm() < 0:
-        #    return self.koszt_fifty + self.podst_podatek * (1 - self.contract_settings.cost_fifty_ratio)
-        #else:
         if self.contract_settings.mandate_contract_type == MandateContractType.UNDER_26_AND_STUDENT:
             return Decimal('0')
         else:
@@ -84,7 +72,6 @@ class MandateContract(BaseContract[MandateContractSettings]):
     @override
     def _calculate_regular_cost(self) -> Decimal:
         if self.contract_settings.is_a_lump_sum and self.salary_gross<=Decimal('200'): return Decimal('0.0')
-
         if not self.contract_settings.is_fifty:
             return self.health_insurance_base * self.rates.income_tax_deduction_20_50[0]
         else:
@@ -94,7 +81,6 @@ class MandateContract(BaseContract[MandateContractSettings]):
     def _calculate_author_rights_cost(self) -> Decimal:
         if not self.contract_settings.is_fifty: return Decimal('0.0')
         if self.contract_settings.is_a_lump_sum and self.salary_gross<=Decimal('200'): return Decimal('0.0')
-
         return SalaryUtilities.calculate_author_rights_cost(
                 Decimal('0'),
                 self.rates.income_tax_deduction_20_50[1],
@@ -141,8 +127,8 @@ class MandateContract(BaseContract[MandateContractSettings]):
 
     @override
     def calculate_employee_ppk_contribution(self) -> Decimal:
-
-        if self.contract_settings.mandate_contract_type == (MandateContractType.UNDER_26_AND_STUDENT or MandateContractType.OTHER_COMPANY_MIN_SALARY):
+        if (self.contract_settings.mandate_contract_type ==
+                (MandateContractType.UNDER_26_AND_STUDENT or MandateContractType.OTHER_COMPANY_MIN_SALARY)):
             return Decimal('0.0')
         return super().calculate_employee_ppk_contribution()
 
@@ -162,15 +148,12 @@ class MandateContract(BaseContract[MandateContractSettings]):
     def calculate_accident_insurance(self) -> Decimal:
         return super().calculate_accident_insurance()
 
-
     @override
     def calculate_fp(self) -> Decimal:
         if not self.contract_settings.fp:
             return Decimal('0')
         else:
             return super().calculate_fp()
-
-
 
     @override
     def calculate_fgsp(self) -> Decimal:

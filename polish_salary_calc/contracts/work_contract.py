@@ -30,10 +30,6 @@ class WorkContract(BaseContract[WorkContractSettings]):
                 return super().calculate_social_security_base()
         return Decimal('0.0')
 
-    # @override
-    # def _calculate_social_security_base_total(self) -> Decimal:
-    #     return self.contract_settings.social_security_base_sum + self.social_security_base
-
     @override
     def calculate_pension_insurance(self) -> Decimal:
         match self.contract_settings.work_contract_type:
@@ -61,10 +57,6 @@ class WorkContract(BaseContract[WorkContractSettings]):
                 return super().calculate_sickness_insurance()
         return Decimal('0.0')
 
-    # @override
-    # def _calculate_social_insurance_sum(self) -> Decimal:
-    #     return self.pension_insurance + self.disability_insurance + self.sickness_insurance
-
     @override
     def calculate_cost(self) -> Decimal:
         return super().calculate_cost()
@@ -72,7 +64,6 @@ class WorkContract(BaseContract[WorkContractSettings]):
     @override
     def _calculate_regular_cost(self) -> Decimal:
         if self.contract_settings.is_a_lump_sum and self.salary_gross <= Decimal('200'): return Decimal('0.0')
-
         if not self.contract_settings.is_fifty:
             if self.contract_settings.work_contract_type == WorkContractType.THE_SAME_COMPANY:
                 return self.health_insurance_base * self.rates.income_tax_deduction_20_50[0]
@@ -84,7 +75,6 @@ class WorkContract(BaseContract[WorkContractSettings]):
     def _calculate_author_rights_cost(self) -> Decimal:
         if not self.contract_settings.is_fifty: return Decimal('0.0')
         if self.contract_settings.is_a_lump_sum and self.salary_gross<=Decimal('200'): return Decimal('0.0')
-
         if self.contract_settings.work_contract_type == WorkContractType.COMMON:
             cost_base = self.salary_gross
         else:
@@ -92,7 +82,7 @@ class WorkContract(BaseContract[WorkContractSettings]):
         return SalaryUtilities.calculate_author_rights_cost(
                 Decimal('0'),
                 self.rates.income_tax_deduction_20_50[1],
-                cost_base,#self.health_insurance_base if self.contract_settings.work_contract_type == WorkContractType.COMMON else self.salary_gross,
+                cost_base,
                 self.contract_settings.cost_fifty_sum,
                 self.rates.cost_threshold
                 )
@@ -113,10 +103,6 @@ class WorkContract(BaseContract[WorkContractSettings]):
     @override
     def calculate_tax_base(self) -> Decimal:
         return super().calculate_tax_base()
-
-    # @property
-    # def tax_base_sum(self)  ->Decimal:
-    #     return self.contract_settings.tax_base_sum + self.tax_base
 
     @override
     def calculate_tax(self) -> Decimal:
@@ -154,17 +140,13 @@ class WorkContract(BaseContract[WorkContractSettings]):
     def calculate_disability_contribution(self)-> Decimal:
         return super().calculate_disability_contribution()
 
-
     @override
     def calculate_accident_insurance(self) -> Decimal:
         return super().calculate_accident_insurance()
 
-
     @override
     def calculate_fp(self) -> Decimal:
             return super().calculate_fp()
-
-
 
     @override
     def calculate_fgsp(self) -> Decimal:
@@ -173,7 +155,6 @@ class WorkContract(BaseContract[WorkContractSettings]):
     @override
     def calculate_employer_ppk_contribution(self) -> Decimal:
         if self.contract_settings.work_contract_type == WorkContractType.COMMON: return Decimal('0.0')
-
         return super().calculate_employer_ppk_contribution()
 
     @override

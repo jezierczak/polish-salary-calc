@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any
 from abc import ABC, abstractmethod
+from typing import override
 
-from polish_salary_calc.salary.salary_utilities import SalaryUtilities
+from polish_salary_calc.salary.salaryexporter import SalaryExporter,SalaryExporterDict
 
 
 @dataclass
-class ContractSettngs(ABC):
+class ContractSettngs(SalaryExporter,ABC):
     name: str | None = None
     current_month_gross_sum: Decimal = Decimal('0.0')
     social_security_base_sum: Decimal = Decimal('0.0')
@@ -19,10 +19,14 @@ class ContractSettngs(ABC):
     salary_deductions: Decimal = Decimal('0.0')
 
     def __str__(self) -> str:
-        return SalaryUtilities.print_dict(self.to_dict())
+        return self.to_string()
+
+    @override
+    def to_exporter_dict(self) -> SalaryExporterDict:
+        return {self.__class__.__name__:self.__dict__}
 
     @abstractmethod
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> dict[str, str | Decimal | bool]:
         pass
 
     def options_type(self):

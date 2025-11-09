@@ -1,7 +1,9 @@
-from polish_salary_calc.contract_settings.contract_settings import ContractSettngs
 from typing import TypedDict, Self, Unpack
 from dataclasses import dataclass
 from decimal import Decimal
+
+from polish_salary_calc.contract_settings.contract_settings import ContractSettngs
+
 
 class EmploymentContractDict(TypedDict):
     increased_costs: bool
@@ -44,11 +46,10 @@ class EmploymentContractSettings(ContractSettngs):
         return cls(**data)
 
     @classmethod
-    def builder(cls) -> 'OptionsBuilder':
-        return cls.OptionsBuilder()
+    def builder(cls) -> 'SettingsBuilder':
+        return cls.SettingsBuilder()
 
-
-    class OptionsBuilder:
+    class SettingsBuilder:
         def __init__(self):
             self._options = EmploymentContractSettings()
 

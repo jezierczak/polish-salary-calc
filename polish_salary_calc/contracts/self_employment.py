@@ -46,10 +46,6 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
 
         return social_base
 
-    # @override
-    # def _calculate_social_security_base_total(self) -> Decimal:
-    #     return self.contract_settings.social_security_base_sum + self.social_security_base
-
     @override
     def calculate_pension_insurance(self) -> Decimal:
         return SalaryUtilities.calculate_pension_or_disability_insurance(
@@ -58,12 +54,6 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
             self.contract_settings.social_security_base_sum,
             self.rates.social_insurance_cap
         )
-        # if self.total_social_security_base_sum <= self.rates.social_insurance_cap:
-        #     return self.social_security_base *self.rates.pension_insurance_rate
-        # elif self.total_social_security_base_sum - self.social_security_base > self.rates.social_insurance_cap:
-        #     return Decimal('0.0')
-        # else:
-        #     return (self.social_security_base - (self.total_social_security_base_sum - self.rates.social_insurance_cap))*self.rates.pension_insurance_rate
 
     @override
     def calculate_disability_insurance(self) -> Decimal:
@@ -87,9 +77,6 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
 
     @override
     def calculate_cost(self) -> Decimal:
-        #if self.podst_podatek * (1 - self.contract_settings.cost_fifty_ratio) - self._calculate_koszt_norm() < 0:
-        #    return self.koszt_fifty + self.podst_podatek * (1 - self.contract_settings.cost_fifty_ratio)
-        #else:
         return super().calculate_cost()
 
     @override
@@ -99,10 +86,6 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
     @override
     def _calculate_author_rights_cost(self) -> Decimal:
         return Decimal('0.0')
-
-    # @property
-    # def cost_fifty_sum(self) -> Decimal:
-    #     return self.contract_settings.cost_fifty_sum + self.author_rights_cost
 
     @override
     def calculate_health_insurance_base(self) -> Decimal:
@@ -133,8 +116,6 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
 
         return super().calculate_health_insurance()
 
-
-
     @override
     def calculate_tax_base(self) -> Decimal:
         if self.contract_settings.tax_type==TaxType.A_LUMP_SUM:
@@ -144,7 +125,6 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
 
     @override
     def calculate_tax(self) -> Decimal:
-
         if self.contract_settings.tax_type == TaxType.STANDARD:
             present_tax_base_sum = self.tax_base + self.contract_settings.tax_base_sum
             if present_tax_base_sum <= self.rates.tax_free_base:
@@ -194,7 +174,6 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
     def calculate_accident_insurance(self) -> Decimal:
         return super().calculate_accident_insurance()
 
-
     @override
     def calculate_fp(self) -> Decimal:
         if not self.contract_settings.is_fp:
@@ -204,8 +183,6 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
                 return self.social_security_base * self.rates.fp_rate
             else:
                 return Decimal('0')
-
-
 
     @override
     def calculate_fgsp(self) -> Decimal:
@@ -221,7 +198,6 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
 
     @override
     def calculate_gross(self) -> None:
-
         self.salary_base = self.calculate_salary_base().quantize(Decimal('0.01'))
         self.salary_sick_pay = self.calculate_sick_pay().quantize(Decimal('0.01'))
         self.salary_gross= self.calculate_salary_gross().quantize(Decimal('0.01'))
@@ -230,18 +206,14 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
         self.pension_insurance = self.calculate_pension_insurance().quantize(Decimal('0.01'))
         self.disability_insurance = self.calculate_disability_insurance().quantize(Decimal('0.01'))
         self.sickness_insurance = self.calculate_sickness_insurance().quantize(Decimal('0.01'))
-
-
         self.regular_cost = self._calculate_regular_cost().quantize(Decimal('0.01'))
         self.author_rights_cost = self._calculate_author_rights_cost().quantize(Decimal('0.01'))
         self.cost = self.calculate_cost().quantize(Decimal('0.01'))
         self.cost_fifty_total = self.calculate_cost_fifty_total().quantize(Decimal('0.01'))
-
         self.employee_ppk_contribution = self.calculate_employee_ppk_contribution().quantize(Decimal('0.01'))
         self.employer_pension_contribution = self.calculate_pension_contribution().quantize(Decimal('0.01'))
         self.employer_disability_contribution = self.calculate_disability_contribution().quantize(Decimal('0.01'))
         self.accident_insurance = self.calculate_accident_insurance().quantize(Decimal('0.01'))
-
         self.fp = self.calculate_fp().quantize(Decimal('0.01'))
         self.fgsp = self.calculate_fgsp().quantize(Decimal('0.01'))
         self.social_insurance_sum = self.calculate_social_insurance_sum().quantize(Decimal('0.01'))
@@ -255,10 +227,8 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
         self.salary_deductions = self.calculate_salary_deductions().quantize(Decimal('0.01'))
         self.tax_advance_payment = self.calculate_tax_advance_payment().quantize(Decimal('1'))
         self.employer_ppk_contribution = self.calculate_employer_ppk_contribution().quantize(Decimal('0.01'))
-
         self.net_salary = self.calculate_net_salary().quantize(Decimal('0.01'))
         self.total_employer_cost = self.calculate_total_employer_cost().quantize(Decimal('0.01'))
-
 
         if (self.contract_settings.self_employment_type==SelfEmploymentType.UNREGISTERED_BUSINESS and
             self.salary_base > self.rates.unregistered_cap):
