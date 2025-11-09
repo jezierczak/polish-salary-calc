@@ -26,7 +26,8 @@ class SalaryExporter(ABC):
                        input_data: SalaryExporterDict | None = None,
                        rows: list[str] | None = None, columns: list[str] | None = None
                        ) -> pd.DataFrame:
-        if input_data is None: input_data = self.to_exporter_dict()
+        if input_data is None:
+            input_data = self.to_exporter_dict()
         if rows is not None:
             input_data = {k:v for k,v in input_data.items() if k in rows}
         return SalaryExporter._generate_data_frame_from_contract_summary(input_data, columns)
@@ -49,6 +50,7 @@ class SalaryExporter(ABC):
                                                 contract_summary_dict: dict[str, dict[str, str | Decimal | bool]],
                                                 columns: list | None = None
                                               ) -> pd.DataFrame:
+
         first_key = list(contract_summary_dict.keys())[0]
         if columns is None:
             columns = list(contract_summary_dict.get(first_key).keys())
@@ -60,6 +62,8 @@ class SalaryExporter(ABC):
 
     @staticmethod
     def print_dict(input_dict: dict) -> str:
+        if input_dict is None:
+            raise ValueError("Input data to show onscreen is None!")
         first_key = list(input_dict.keys())[0]
         out = [first_key]
         max_len = 0

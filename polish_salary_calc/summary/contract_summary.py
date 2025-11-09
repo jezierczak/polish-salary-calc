@@ -2,6 +2,8 @@ from decimal import Decimal
 from enum import Enum
 from typing import TypedDict, override, Self
 
+from optype.json import Object
+
 from polish_salary_calc.salary.salaryexporter import SalaryExporter
 from polish_salary_calc.contracts.employment_contract import EmploymentContract
 from polish_salary_calc.contracts.mandate_contract import MandateContract
@@ -76,7 +78,7 @@ class YearContractService(SalaryExporter):
             mco["contract_settings"].cost_fifty_sum = cost_fifty_sum
             mco["contract_settings"].tax_base_sum = tax_base_sum
 
-
+            contract: EmploymentContract | MandateContract | SelfEmployment | WorkContract | None = None
             if isinstance(mco["contract_settings"], EmploymentContractSettings):
                 contract = EmploymentContract(mco["rates"],mco["contract_settings"])
             elif isinstance(mco["contract_settings"], MandateContractSettings):
@@ -127,7 +129,7 @@ class YearContractService(SalaryExporter):
     def to_dict_salary(self) ->  dict[str, Salary]:
         output = {k.value: v for k, v in self._monthly_contract_calculated_data.items()}
         output['SUMMARY'] =self.summary
-        if self.is_compared:
+        if self.is_compared and self.salary_compared_contract is not None and self.salary_difference is not None:
             output['COMPARED'] = self.salary_compared_contract
             output['DIFFERENCE'] = self.salary_difference
         return output

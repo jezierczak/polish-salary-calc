@@ -53,22 +53,22 @@ class SalaryDict(TypedDict):
     total_markups_ratio: Decimal
 
 class Salary[T: ContractSettngs](SalaryExporter):
-    def __init__(self, rates: Rates | None = None, contract_settings: T | None = None) -> None:
+    def __init__(self, rates: Rates , contract_settings: T ) -> None:
 
         self.input_salary = Decimal('0')
 
         self._created_datetime = datetime.now()
 
-        self.rates: Rates | None = rates
-        self.contract_settings: T | None= contract_settings
-        if self.contract_settings is not None:
-            if self.contract_settings.name is None:
-                self.name = self._generate_name_from_date()
-            else:
-                self.name = self.contract_settings.name
+        self.rates: Rates = rates
+        self.contract_settings: T = contract_settings
 
-            if 0 < self.contract_settings.employer_ppk < Decimal('0.015') or 0 < self.contract_settings.employee_ppk < Decimal('0.02'):
-                raise ValueError('Employer or employee PPK rate is too small')
+        if self.contract_settings.name is None:
+            self.name = self._generate_name_from_date()
+        else:
+            self.name = self.contract_settings.name
+
+        if 0 < self.contract_settings.employer_ppk < Decimal('0.015') or 0 < self.contract_settings.employee_ppk < Decimal('0.02'):
+            raise ValueError('Employer or employee PPK rate is too small')
 
 
         self.salary_base: Decimal = Decimal('0.0') #płaca podstawowa
@@ -176,7 +176,7 @@ class Salary[T: ContractSettngs](SalaryExporter):
         if row_name is None:
             row_name = self.name
         output:  dict[str, dict[str, str | Decimal | bool]] = {row_name:self.to_dict()}
-        if self.is_compared:
+        if self.is_compared and self.salary_compared_contract is not None and self.salary_difference is not None:
             output["COMPARED"] = self.salary_compared_contract.to_dict()
             output["DIFFERANCE"] = self.salary_difference.to_dict()
         return output
