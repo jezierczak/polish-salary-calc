@@ -93,7 +93,7 @@ def main() -> None:
     self_employment = SelfEmployment(rates, self_employment_settings)
     self_employment.calculate(Decimal("7000"), SalaryType.NET)
 
-# to print output just write print(self.employment)
+# to print output just write print(self_employment)
     print('---------------------------------------- [1 - simple calculations] -------------------------------')
     print(self_employment) #change this to other contracts to see output
 
@@ -138,7 +138,7 @@ def main() -> None:
 #single contract also can be exported:
     #employment_contract.to_excel(Path('Single.xlsx'))
     #...
-#if comparsion is made you can export and print compared details
+#if comparison is made, you can export and print compared details
     print('---------------------------------------- [6 - compared data] ----------------------------------------')
     print(self_employment.to_compared_string())
 #or export

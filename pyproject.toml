@@ -2,9 +2,9 @@
 name = "polish-salary-calc"
 version = "0.1.1"
 description = "Polish salary calculator"
-authors = ["Jarosław Jezierczak"]
+authors = ["Jarosław Jezierczak <jezierczak@gmail.com>"]
 license = "Free"
-readme = "README.md"
+readme = "README_PYPI.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
