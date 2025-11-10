@@ -32,18 +32,18 @@ class SalaryExporter(ABC):
             input_data = {k:v for k,v in input_data.items() if k in rows}
         return SalaryExporter._generate_data_frame_from_contract_summary(input_data, columns)
 
-    def to_excel(self, path: Path, input_data: SalaryExporterDict | None = None):
+    def to_excel(self, path: Path, input_data: SalaryExporterDict | None = None)->None:
         if input_data is None: input_data = self.to_exporter_dict()
         first_items = list(input_data.items())[0][0] #or {'contract_type':"None"}
-        return self.get_data_frame(input_data).to_excel(path,sheet_name=first_items)
+        self.get_data_frame(input_data).to_excel(path,sheet_name=first_items)
 
-    def to_json(self, path: Path, input_data: SalaryExporterDict | None = None):
+    def to_json(self, path: Path, input_data: SalaryExporterDict | None = None)->None:
         if input_data is None: input_data = self.to_exporter_dict()
-        return self.get_data_frame(input_data).to_json(path, indent=4, index=True,orient="index")
+        self.get_data_frame(input_data).to_json(path, indent=4, index=True,orient="index")
 
-    def to_csv(self, path: Path, input_data: SalaryExporterDict | None = None):
+    def to_csv(self, path: Path, input_data: SalaryExporterDict | None = None)->None:
         if input_data is None: input_data = self.to_exporter_dict()
-        return self.get_data_frame(input_data).to_csv(path,sep=";", index=True)
+        self.get_data_frame(input_data).to_csv(path,sep=";", index=True)
 
     @staticmethod
     def _generate_data_frame_from_contract_summary(

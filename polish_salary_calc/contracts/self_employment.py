@@ -223,7 +223,6 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
         self.tax = self._add_ppk_tax_and_check_if_is_positive(self.calculate_tax()).quantize(Decimal('0.01'))
         self.health_insurance_base = self.calculate_health_insurance_base().quantize(Decimal('0.01'))
         self.health_insurance = self.calculate_health_insurance().quantize(Decimal('0.01'))
-        # self.ub_zdr_odl = self._calculate_ub_zdr_odl()
         self.salary_deductions = self.calculate_salary_deductions().quantize(Decimal('0.01'))
         self.tax_advance_payment = self.calculate_tax_advance_payment().quantize(Decimal('1'))
         self.employer_ppk_contribution = self.calculate_employer_ppk_contribution().quantize(Decimal('0.01'))

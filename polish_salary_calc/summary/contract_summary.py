@@ -2,8 +2,6 @@ from decimal import Decimal
 from enum import Enum
 from typing import TypedDict, override, Self
 
-from optype.json import Object
-
 from polish_salary_calc.salary.salaryexporter import SalaryExporter
 from polish_salary_calc.contracts.employment_contract import EmploymentContract
 from polish_salary_calc.contracts.mandate_contract import MandateContract
@@ -40,7 +38,7 @@ class ContractSettings(TypedDict):
     enabled: bool
 
 
-class YearContractService(SalaryExporter):
+class YearContractSummary(SalaryExporter):
     def __init__(self,
                  default_rates:Rates,
                  contract_settings: EmploymentContractSettings | MandateContractSettings | SelfEmploymentSettings | WorkContractSettings,

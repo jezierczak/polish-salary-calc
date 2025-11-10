@@ -1,7 +1,6 @@
 from decimal import Decimal
 
 
-
 class SalaryUtilities:
     @staticmethod
     def calculate_pension_or_disability_insurance(

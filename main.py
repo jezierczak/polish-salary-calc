@@ -1,28 +1,37 @@
 from pathlib import Path
+from decimal import Decimal
+
 
 from polish_salary_calc.contract_settings.mandate_contract_settings import MandateContractSettings, MandateContractType
 from polish_salary_calc.contract_settings.work_contract_settings import WorkContractSettings, WorkContractType
-
 from polish_salary_calc.contract_settings.self_employment_settings import SelfEmploymentSettings, SelfEmploymentType, TaxType, \
     HealthBase
+from polish_salary_calc.contracts.self_employment import SelfEmployment
+from polish_salary_calc.contracts.employment_contract import EmploymentContract
+from polish_salary_calc.contracts.mandate_contract import MandateContract
 from polish_salary_calc.contracts.work_contract import WorkContract
 from polish_salary_calc.rates.rates import Rates
 from polish_salary_calc.contracts.base_contract import SalaryType
-
 from polish_salary_calc.contract_settings.employment_contract_settings import EmploymentContractSettings
 
-from decimal import Decimal
-
-from polish_salary_calc.summary.contract_summary import YearContractService, Months
+from polish_salary_calc.summary.contract_summary import YearContractSummary, Months
 
 
 def main() -> None:
-    rates = Rates()
-    path2 = Path("./data")
-    path2.mkdir(parents=True, exist_ok=True)
-    # print(rates.to_json(path2 / "rates.json"))
+#--------------1----------
+# create Rates() object with actual polish indicators, default rates are actual the months of feb.2025 and jan.2026
+# to update nesesery rate type rates['rate-name'] = Decimal("rate-value")
+#all values in salary_calculator must be provided in Decimal type
 
-    employment_options = (EmploymentContractSettings().builder().
+    rates = Rates()
+
+#--------------2----------
+#the next step is to set up desired contract settings:
+
+#for employment contract set EmploymentContractSettings - you can do it either with builder or dict,
+# each setting has a predefined default values
+
+    employment_settings = (EmploymentContractSettings().builder().
                           is_increased_costs(True).
                           is_active_business(False).
                           is_under_26(False).
@@ -31,68 +40,26 @@ def main() -> None:
                           # set_employer_ppk(Decimal("0.015")).
                           is_fp_fgsp(True).
                           build())
-    # print(employment_options)
-    # salary = EmploymentContract(rates,employment_options)
-    # salary.calculate(Decimal('10000'), SalaryType.GROSS)
 
-    # print(rates)
-    # print(employment_options)
-    # print(salary)
+#for mandated contract set MandateContractSettings
 
-    # printer = ConsolePrinter(salary)
-    # print(printer.print_rates())
-    # print(printer.print_options())
-    # print(printer.print_contract())
-
-    # print(salary.get_rates())
-    # print(salary.get_options())
-    # for k,i in salary.to_dict().items():
-    #     print(f'{k:20.20}: {i}')
-    # print(f'Net ratio: {salary.net_ratio}')
-    # print(f'Total markups: {salary.total_markups}')
-    # print(f'Total markups ratio: {salary.total_markups_ratio}')
-
-    # print('--------------------Zlecenie----------------------------')
-
-    mandate_options = (MandateContractSettings().builder().
+    mandate_settings = (MandateContractSettings().builder().
                        set_mandate_contract_type(MandateContractType.COMMON).
                        is_fifty(False).
                        is_fp(True).
                        is_fgsp(True).
                        build())
-    #
-    # salary2 = MandateContract(rates, mandate_options)
-    # # salary.update_options(employment_options)
-    # salary2.calculate(Decimal('2000'), SalaryType.GROSS)
-    #
-    # print(salary2.get_rates())
-    # print(salary2.get_options())
-    # for k, i in salary2.get_all_output().items():
-    #     print(f'{k:20.20}: {i}')
-    # print(f'Net ratio: {salary2.net_ratio}')
-    # print(f'Total markups: {salary2.total_markups}')
-    # print(f'Total markups ratio: {salary2.total_markups_ratio}')
-    #
-    # print('--------------------O dzieło----------------------------')
-    #
-    work_options = (WorkContractSettings().builder().
+
+#for work contract set WorkContractSettings
+
+    work_settings = (WorkContractSettings().builder().
                     is_a_lump_sum(False).
                     set_work_contract_type(WorkContractType.COMMON).
                     build())
-    salary3 = WorkContract(rates, work_options)
-    salary3.calculate(Decimal('8000'), SalaryType.NET)
 
-    # print(salary3.get_rates())
-    # print(salary3.get_options())
-    # for k, i in salary3.get_all_output().items():
-    #     print(f'{k:20.20}: {i}')
-    # print(f'Net ratio: {salary3.net_ratio}')
-    # print(f'Total markups: {salary3.total_markups}')
-    # print(f'Total markups ratio: {salary34.total_markups_ratio}')
-    # #
-    # print('--------------------Działalność----------------------------')
-    #
-    self_employment_options = (SelfEmploymentSettings().
+#for self employment set SelfEmploymentSettings
+
+    self_employment_settings = (SelfEmploymentSettings().
                                 builder().
                                 set_self_employment_type(SelfEmploymentType.COMMON).
                                 set_sick_pay(True).
@@ -101,91 +68,87 @@ def main() -> None:
                                 set_health_base(HealthBase.NONE).
                                 set_costs(Decimal('0.0')).
                                 set_tax_base_sum(Decimal('0.0')).
-                                set_name("Umowa nr 193").
+                                set_name("Samozatrudnienie").
                                 build())
-    # salary4 = SelfEmployment(rates, self_employment_options)
-    # salary4.calculate(Decimal('10000'), SalaryType.GROSS)
-    # # print(salary4)
-    # print(salary4)
-    # print(salary4)
-    #
-    # # print(salary4.get_rates())
-    # # print(salary4.get_options())
-    # for k, i in salary4.get_all_output().items():
-    #     print(f'{k:20.20}: {i}')
-    # print(f'Net ratio: {salary4.net_ratio}')
-    # print(f'Total markups: {salary4.total_markups}')
-    # print(f'Total markups ratio: {salary4.total_markups_ratio}')
 
-    # contract_service = ContractServic(rates)
-    # contract_service.add_contract(All,salary4)
-    # contract_service.show()
-    # contract_service.export(EXCCEL,"mojasymulacja.xcl", clean=True)
-    print("---------Porównanie umów----------")
-    # yc = YearContractService(rates,employment_options,Decimal("12000"),SalaryType.NET)
-    # yc.calculate()
-    # print(yc.get_data_frame(rows=["summary"]))
-    # yc2 = YearContractService(rates,mandate_options,Decimal("12000"),SalaryType.NET)
-    # yc2.calculate()
-    # print(yc2.get_data_frame(rows=["summary"]))
-    # yc3 = YearContractService(rates, work_options, Decimal("12000"),SalaryType.NET)
-    # yc3.calculate()
-    # print(yc3.get_data_frame(rows=["summary"]))
-    yc4 = YearContractService(rates, employment_options, Decimal("8000"),SalaryType.NET)
-    # yc4.modify_month_contracts([Months.APR,Months.MAY],salary_base= Decimal("12000"))
-    # yc4.modify_month_contracts([Months.JAN,], salary_base=Decimal("0"), enabled=False)
+#--------------3----------
+#After setting options make desired contract:
+#and make calculations with .calculate(salary_value, salary_type)
+# salary_value - desired salary amount
+# salary type (SalaryType.GROSS is default) - SalaryType.GROSS or SalaryType.NET - shows which base is delivered salary_value
 
+#setting up employment contract with rates, and employment settings, salary gross set to 7000, calculations made
+    employment_contract =EmploymentContract(rates,employment_settings)
+    employment_contract.calculate(Decimal("7000"),SalaryType.GROSS)
 
+#setting up mandated contract with rates, and employment settings, salary gross set to 7000, calculations made
+    mandate_contract = MandateContract(rates, mandate_settings)
+    mandate_contract.calculate(Decimal("7000"), SalaryType.GROSS)
 
-    path = Path("./data")
-    path.mkdir(parents=True, exist_ok=True)
-    yc4.calculate()
+#setting up work contract with rates, and employment settings, salary gross (default) set to 7000, calculations made
+    work_contract = WorkContract(rates, work_settings)
+    work_contract.calculate(Decimal("7000"))
 
-    print(salary3.compare_to(yc4["JUL"]))
+#setting up self-employment with rates, and employment settings, a salary net set to 7000, calculations made
+    self_employment = SelfEmployment(rates, self_employment_settings)
+    self_employment.calculate(Decimal("7000"), SalaryType.NET)
 
-    # print(yc4.compare_to(yc4))
+# to print output just write print(self.employment)
+    print('---------------------------------------- [1 - simple calculations] -------------------------------')
+    print(self_employment) #change this to other contracts to see output
 
+#you can also set year contract summary with desired options:
+#in this case, use YearContractSummary(default_rates, contract_settings, salary_value, salary_type):
 
-    # print(yc4.to_excel(path / 'salary8000.xlsx'))
-    # yc4.all_to_json(path / "salary4.json")
-    # print(yc4.to_csv(path / "plik1.csv"))
-    # print(yc4['JUL'].to_csv(path / "plik2.csv"))
-    # print(yc4.all_to_csv(path / "plik3.csv"))
-    # yc4["JUN"].to_excel(path / "Plik462.xlsx")
-    # yc4.to_excel(path / "Plik42.xlsx")
-    # yc4.all_to_excel(path / "Plik442.xlsx")
+#for rates, employment_contract, net salary value set to 8000 write bottom code and make calculations:
+    year_employment_contract = YearContractSummary(rates,employment_settings,Decimal('8000'),SalaryType.NET)
+    year_employment_contract.calculate()
 
-    # print(yc4)
+#to write output just write print:
+    print('---------------------------------------- [2 - year calculations] --------------------------------')
+    print(year_employment_contract)
+
+#you can change default data to other with modify_month_contracts method
+    year_employment_contract.modify_month_contracts([Months.MAR,Months.DEC],rates=rates,salary_base=Decimal('2100'))
+
+#to disable months type enabled=False
+    year_employment_contract.modify_month_contracts([Months.APR, Months.AUG], enabled=False)
+
+#after making modifications always make calculate method
+    year_employment_contract.calculate()
 
 
-    # print(yc4["JAN"])
-    # yc4["APR"].to_csv(path / "APR.csv")
-    # yc4["APR"].to_excel(path / "EXcel.xls")
-    # yc4["APR"].to_json(path / "Json.json")
+    print('---------------------------------------- [3 - modifying particular months] ----------------------')
+    print(year_employment_contract)
 
-    # yc4["APR"].get_data_frame().to_excel(path / "output.xlsx",sheet_name=yc4.name)
-    # yc4.get_data_frame().to_json(path / "output.json",indent=4, index=True,orient="index")
-    # yc4.get_data_frame().to_csv(path / "output.csv", sep=";", index=True)
-    #
-    # print(yc4.monthly_contract_calculated_data.get(Months.JAN))
+#it is possible to compare 2 contracts:
+    print('---------------------------------------- [4 - comparing] ----------------------------------------')
+    print(year_employment_contract["MAR"].compare_to(year_employment_contract["MAY"]))
 
-    # df =pandas.DataFrame([salary.to_dict() for salary in yc.monthly_contract_calculated_data.values()],
-    #                      index=[k.value for k in yc.monthly_contract_calculated_data.keys()],
-    #                      columns=list(yc.monthly_contract_calculated_data[Months.JAN].to_dict().keys()))
-    # print(list(yc.monthly_contract_calculated_data[Months.JAN].to_dict().keys()))
 
-    # print({month:salary.to_dict() for month,salary in yc.monthly_contract_calculated_data.items()})
+    print('---------------------------------------- [5 - comparing] ----------------------------------------')
+    print(self_employment.compare_to(year_employment_contract["MAY"]))
 
-    # print(yc.monthly_contract_calculated_data[Months.DEC].tax_base_total)
-    # suma = Decimal("0")
-    # for month in Months:
-    #     print(yc.monthly_contract_calculated_data[month].social_security_base)
-    #     print(yc.monthly_contract_calculated_data[month].social_security_base_total)
-    #
-    #     suma+=yc.monthly_contract_calculated_data[month].social_security_base
-    # print(suma == yc.summary.social_security_base)
-    # print("------------------------")
-    # print(yc.summary)
-    # print(yc.summary.social_security_base_total)
+#it is possible to export gathered data to_dict, to_excel file to_csv file and to_json file or get pandas dataframe:
+    #employment_data_frame = year_employment_contract.get_data_frame()
+    #year_employment_contract.to_excel(Path('Output.xlsx'))
+    #year_employment_contract["SUMMARY"].to_csv(Path('Output.xlsx'))
+    #year_employment_contract["JAN"].to_json(Path('Output.xlsx'))
+
+#single contract also can be exported:
+    #employment_contract.to_excel(Path('Single.xlsx'))
+    #...
+#if comparsion is made you can export and print compared details
+    print('---------------------------------------- [6 - compared data] ----------------------------------------')
+    print(self_employment.to_compared_string())
+#or export
+    # self_employment.to_compared_excel()
+
+#rates and settings also can be printed or exported:
+    # rates.to_csv(Path('rates.csv'))
+    # employment_contract.get_options().to_json(Path('settings.json') )
+    # print(rates)
+    # print(employment_contract.get_options())
+
 if __name__ == '__main__':
     main()

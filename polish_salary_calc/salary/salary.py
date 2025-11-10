@@ -1,4 +1,7 @@
 from datetime import datetime
+from pathlib import Path
+
+import pandas as pd
 
 from polish_salary_calc.salary.salaryexporter import SalaryExporter
 from polish_salary_calc.contract_settings.contract_settings import ContractSettngs
@@ -176,19 +179,45 @@ class Salary[T: ContractSettngs](SalaryExporter):
         if row_name is None:
             row_name = self.name
         output:  dict[str, dict[str, str | Decimal | bool]] = {row_name:self.to_dict()}
+        # if self.is_compared and self.salary_compared_contract is not None and self.salary_difference is not None:
+        #     output["COMPARED"] = self.salary_compared_contract.to_dict()
+        #     output["DIFFERANCE"] = self.salary_difference.to_dict()
+        return output
+
+    def to_compared_dict(self, row_name: str | None = None) ->  dict[str,dict[str, str | Decimal | bool]]:
+        if row_name is None:
+            row_name = self.name
+        output: dict[str, dict[str, str | Decimal | bool]] = {row_name: self.to_dict()}
         if self.is_compared and self.salary_compared_contract is not None and self.salary_difference is not None:
             output["COMPARED"] = self.salary_compared_contract.to_dict()
             output["DIFFERANCE"] = self.salary_difference.to_dict()
         return output
+
+    def to_compared_string(self) -> str:
+        return self.to_string(self.to_compared_dict())
+
+    def get_compared_data_frame(self) -> pd.DataFrame:
+        return self.get_data_frame(self.to_compared_dict())
+
+    def to_compared_excel(self,path: Path) -> None:
+        self.to_excel(path,self.to_compared_dict())
+
+    def to_compared_csv(self,path: Path) -> None:
+        self.to_csv(path,self.to_compared_dict())
+
+    def to_compared_json(self,path: Path) -> None:
+        self.to_json(path,self.to_compared_dict())
 
     def get_contract_type(self) -> str:
         return self.__class__.__name__
 
     def compare_to(self, salary_compared_contract: "Salary") -> "Salary":
         self.salary_compared_contract = salary_compared_contract
+        # self.salary_difference = Salary(self.rates,self.contract_settings)
         self.salary_difference = self - self.salary_compared_contract
+        self.salary_difference.name = "DIFFERENCE"
         self.is_compared = True
-        return self
+        return self.salary_difference
 
     def __str__(self) -> str:
         return self.to_string()
