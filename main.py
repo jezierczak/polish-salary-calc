@@ -31,7 +31,7 @@ def main() -> None:
 #for employment contract set EmploymentContractSettings - you can do it either with builder or dict,
 # each setting has a predefined default values
 
-    employment_settings = (EmploymentContractSettings().builder().
+    employment_settings = (EmploymentContractSettings().SettingsBuilder().
                           is_increased_costs(True).
                           is_active_business(False).
                           is_under_26(False).
@@ -43,7 +43,7 @@ def main() -> None:
 
 #for mandated contract set MandateContractSettings
 
-    mandate_settings = (MandateContractSettings().builder().
+    mandate_settings = (MandateContractSettings().SettingsBuilder().
                        set_mandate_contract_type(MandateContractType.COMMON).
                        is_fifty(False).
                        is_fp(True).
@@ -52,7 +52,7 @@ def main() -> None:
 
 #for work contract set WorkContractSettings
 
-    work_settings = (WorkContractSettings().builder().
+    work_settings = (WorkContractSettings().SettingsBuilder().
                     is_a_lump_sum(False).
                     set_work_contract_type(WorkContractType.COMMON).
                     build())
@@ -60,7 +60,7 @@ def main() -> None:
 #for self employment set SelfEmploymentSettings
 
     self_employment_settings = (SelfEmploymentSettings().
-                                builder().
+                                SettingsBuilder().
                                 set_self_employment_type(SelfEmploymentType.COMMON).
                                 set_sick_pay(True).
                                 set_tax_type(TaxType.A_LUMP_SUM).
@@ -77,9 +77,9 @@ def main() -> None:
 # salary_value - desired salary amount
 # salary type (SalaryType.GROSS is default) - SalaryType.GROSS or SalaryType.NET - shows which base is delivered salary_value
 
-#setting up employment contract with rates, and employment settings, salary gross set to 7000, calculations made
+#setting up employment contract with rates, and employment settings, salary NET set to 7000, calculations made
     employment_contract =EmploymentContract(rates,employment_settings)
-    employment_contract.calculate(Decimal("7000"),SalaryType.GROSS)
+    employment_contract.calculate(Decimal("7000"),SalaryType.NET)
 
 #setting up mandated contract with rates, and employment settings, salary gross set to 7000, calculations made
     mandate_contract = MandateContract(rates, mandate_settings)
@@ -101,7 +101,9 @@ def main() -> None:
 #in this case, use YearContractSummary(default_rates, contract_settings, salary_value, salary_type):
 
 #for rates, employment_contract, net salary value set to 8000 write bottom code and make calculations:
-    year_employment_contract = YearContractSummary(rates,employment_settings,Decimal('8000'),SalaryType.NET)
+    year_employment_contract = YearContractSummary(rates,employment_settings,Decimal('7000'),SalaryType.NET)
+#or you can initiate YearSummary from contract:
+    #year_employment_contract = YearContractSummary.from_contract(self_employment)
     year_employment_contract.calculate()
 
 #to write output just write print:

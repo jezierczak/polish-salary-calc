@@ -48,7 +48,7 @@ def test_self_employment_common(
         accident:Decimal,fp:Decimal,total_gross:Decimal
         )->None:
     self_employment_options = (SelfEmploymentSettings().
-                               builder().
+                               SettingsBuilder().
                                set_self_employment_type(SelfEmploymentType.COMMON).
                                set_sick_pay(True).
                                set_costs(Decimal('1000.0')).
@@ -98,7 +98,7 @@ def test_self_employment_preferred(
         accident:Decimal,fp:Decimal,total_gross:Decimal
         )->None:
     self_employment_options = (SelfEmploymentSettings().
-                               builder().
+                               SettingsBuilder().
                                set_self_employment_type(SelfEmploymentType.PREFERRED).
                                set_sick_pay(True).
                                set_costs(Decimal('1000.0')).
@@ -125,7 +125,7 @@ def test_self_employment_preferred(
 
     #No sick pay
     se.update_options((SelfEmploymentSettings().
-                       builder().
+                       SettingsBuilder().
                        set_self_employment_type(SelfEmploymentType.PREFERRED).
                        set_sick_pay(False).
                        set_costs(Decimal('1000.0')).
@@ -160,7 +160,7 @@ def test_self_employment_startup_relief(
         accident:Decimal,fp:Decimal,total_gross:Decimal
         )->None:
     self_employment_options = (SelfEmploymentSettings().
-                               builder().
+                               SettingsBuilder().
                                set_self_employment_type(SelfEmploymentType.STARTUP_RELIEF).
                                set_sick_pay(True).
                                set_costs(Decimal('1000.0')).
@@ -205,7 +205,7 @@ def test_self_employment_unregistered_business(
         accident:Decimal,fp:Decimal,total_gross:Decimal
         )->None:
     self_employment_options = (SelfEmploymentSettings().
-                               builder().
+                               SettingsBuilder().
                                set_self_employment_type(SelfEmploymentType.UNREGISTERED_BUSINESS).
                                set_sick_pay(True).
                                set_costs(Decimal('1000.0')).
@@ -232,7 +232,7 @@ def test_self_employment_unregistered_business(
 
 def test_self_employment_unregistered_business_exceeded_income_cap() -> None:
     rates = Rates()
-    se = SelfEmployment(rates, SelfEmploymentSettings().builder().set_self_employment_type(SelfEmploymentType.UNREGISTERED_BUSINESS).build())
+    se = SelfEmployment(rates, SelfEmploymentSettings().SettingsBuilder().set_self_employment_type(SelfEmploymentType.UNREGISTERED_BUSINESS).build())
     with pytest.raises(ValueError,match="Salary base for unregistered business exceeded unregistered business income cap") as e:
         se.calculate(Decimal('5000.0'))
 
@@ -262,7 +262,7 @@ def test_self_employment_common_with_linear_tax(
         accident:Decimal,fp:Decimal,total_gross:Decimal
         )->None:
     self_employment_options = (SelfEmploymentSettings().
-                               builder().
+                               SettingsBuilder().
                                set_self_employment_type(SelfEmploymentType.COMMON).
                                set_sick_pay(True).
                                set_tax_type(TaxType.LINE_TAX).
@@ -359,7 +359,7 @@ def test_self_employment_common_with_a_lump(
         total_gross:Decimal
         )->None:
     self_employment_options = (SelfEmploymentSettings().
-                               builder().
+                               SettingsBuilder().
                                set_self_employment_type(SelfEmploymentType.COMMON).
                                set_sick_pay(True).
                                set_tax_type(TaxType.A_LUMP_SUM).
@@ -383,7 +383,7 @@ def test_self_employment_common_with_a_lump(
 def test_self_employment_common_with_a_lump_raises_error_wrong_rate()->None:
 
     self_employment_options = (SelfEmploymentSettings().
-                               builder().
+                               SettingsBuilder().
                                set_self_employment_type(SelfEmploymentType.COMMON).
                                set_tax_type(TaxType.A_LUMP_SUM).
                                set_tax_lump_rate(Decimal('10')).

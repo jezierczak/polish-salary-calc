@@ -184,7 +184,7 @@ def test_mandate_contract_the_same_company_with_20_costs(
 
 
 def test_mandate_contract_under_26()->None:
-    mandate_options = (MandateContractSettings().builder().
+    mandate_options = (MandateContractSettings().SettingsBuilder().
                        set_mandate_contract_type(MandateContractType.UNDER_26_AND_STUDENT).
                        build())
     rates = Rates()
@@ -201,7 +201,7 @@ def test_mandate_contract_under_26()->None:
 
 
 def test_mandate_contract_common_under_200_with_a_lump_sum()->None:
-    mandate_options = (MandateContractSettings().builder().
+    mandate_options = (MandateContractSettings().SettingsBuilder().
                        set_mandate_contract_type(MandateContractType.COMMON).
                        is_a_lump_sum(True).
                        build())
@@ -219,7 +219,7 @@ def test_mandate_contract_common_under_200_with_a_lump_sum()->None:
 
 
 def test_mandate_contract_unknown_contract_type()->None:
-    mandate_options = (MandateContractSettings().builder().
+    mandate_options = (MandateContractSettings().SettingsBuilder().
                        set_mandate_contract_type(5). #type: ignore
                        build())
     rates = Rates()

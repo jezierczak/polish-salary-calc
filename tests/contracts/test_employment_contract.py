@@ -62,7 +62,7 @@ def employment_contract_mock_6000_gross() -> MagicMock:
 
 def test_employment_contract_6000_gross(employment_contract_mock_6000_gross) -> None:
     rates = Rates()
-    options = (EmploymentContractSettings().builder().
+    options = (EmploymentContractSettings().SettingsBuilder().
                is_increased_costs(True).
                #set_cost_fifty_ratio(Decimal('0.15')).
                is_active_business(True).
@@ -76,7 +76,7 @@ def test_employment_contract_6000_gross(employment_contract_mock_6000_gross) -> 
     assert ec.salary_gross == employment_contract_mock_6000_gross.salary_gross
     assert ec.net_salary ==employment_contract_mock_6000_gross.net_salary
 
-    options2 = (EmploymentContractSettings().builder().
+    options2 = (EmploymentContractSettings().SettingsBuilder().
                 is_increased_costs(True).
                 set_cost_fifty_ratio(Decimal('0.5')).
                 is_active_business(False).
@@ -90,7 +90,7 @@ def test_employment_contract_6000_gross(employment_contract_mock_6000_gross) -> 
     ec.update_options(options2)
     ec.calculate(Decimal('6000'), SalaryType.GROSS)
     assert ec.is_calculated == True
-    assert ec.get_options() == options2
+    assert ec.get_settings() == options2
     assert ec.author_rights_cost == Decimal('2438.70')
     assert ec.employee_ppk_contribution == Decimal('120.00')
     assert ec.employer_ppk_contribution == Decimal('90.00')
@@ -128,7 +128,7 @@ def test_employment_contract_6000_gross(employment_contract_mock_6000_gross) -> 
 
 def test_employment_contract_6000_gross_wrong_ppk() -> None:
     rates = Rates()
-    options = EmploymentContractSettings().builder().set_employee_ppk(Decimal('0.1')).set_employer_ppk(Decimal('0.01')).build()
+    options = EmploymentContractSettings().SettingsBuilder().set_employee_ppk(Decimal('0.1')).set_employer_ppk(Decimal('0.01')).build()
     with pytest.raises(ValueError, match='Employer or employee PPK rate is too small'):
         ec = EmploymentContract(rates, options)
         ec.calculate(Decimal('6000'),SalaryType.GROSS)
@@ -156,11 +156,11 @@ def test_employment_contract_small_cost_no_fgsp_no_ppk(
         accident:Decimal,fp:Decimal,fgsp:Decimal,total_gross:Decimal
         )->None:
     rates = Rates()
-    options = (EmploymentContractSettings().builder().
+    options = (EmploymentContractSettings().SettingsBuilder().
                is_increased_costs(False).
                is_active_business(False).
                is_fp_fgsp(True).
-
+               set_name("NAME SET").
                is_under_26(False).
                build())
     ec = EmploymentContract(rates, options)
@@ -181,13 +181,40 @@ def test_employment_contract_small_cost_no_fgsp_no_ppk(
     assert ec.fp == fp
     assert ec.fgsp == fgsp
     assert ec.total_employer_cost ==total_gross
-
+    assert ec.name == "NAME SET"
     assert ec.get_rates() == rates
-    assert ec.get_options() == options
+    assert ec.get_settings() == options
 
     ec2 = EmploymentContract(rates, options)
     ec2.calculate(ec.net_salary,SalaryType.NET)
     assert ec2.is_calculated == True
     assert ec2.salary_gross == ec.salary_gross
 
+def test_employment_contract_comparing_to(employment_contract_gross_6000,mandate_contract_gross_6000) -> None:
 
+    assert employment_contract_gross_6000.is_compared == False
+    assert len(employment_contract_gross_6000.to_compared_dict()) == 1
+    employment_contract_gross_6000.compare_to(mandate_contract_gross_6000)
+    assert employment_contract_gross_6000.is_calculated == True
+    assert employment_contract_gross_6000.is_compared == True
+    assert len(employment_contract_gross_6000.to_compared_dict()) == 3
+    assert list(employment_contract_gross_6000.to_compared_dict().keys())[-2:] == ["COMPARED","DIFFERANCE"]
+    assert employment_contract_gross_6000.salary_compared_contract == mandate_contract_gross_6000
+
+def test_employment_contract_add_to_other(employment_contract_gross_6000,self_employment_gross_6000) -> None:
+
+    sum_contract = employment_contract_gross_6000+self_employment_gross_6000
+
+    assert sum_contract.net_salary == employment_contract_gross_6000.net_salary + self_employment_gross_6000.net_salary
+
+def test_employment_contract_isub(employment_contract_gross_6000,self_employment_gross_6000) -> None:
+    net_salary = employment_contract_gross_6000.net_salary
+    employment_contract_gross_6000-=self_employment_gross_6000
+
+    assert employment_contract_gross_6000.net_salary == net_salary- self_employment_gross_6000.net_salary
+
+
+def test_employment_to_str(employment_contract_gross_6000) -> None:
+    assert len(employment_contract_gross_6000.to_string().split('\n')) == 34
+    assert employment_contract_gross_6000.to_string().split('\n')[1].startswith("NAME..")
+    assert employment_contract_gross_6000.to_string() == employment_contract_gross_6000.__str__()

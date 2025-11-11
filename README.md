@@ -21,13 +21,13 @@ pip install polish-salary-calc
    The `Rates` object loads current legal contribution and tax rates (default covers Feb 2025 – Jan 2026).  
    You may override values manually:
    ```python
-   rates['zus_employer'] = Decimal("0.093")
+   rates['pension_insurance_rate'] = Decimal("0.0976")
    ```
 
 2. **Contract Settings**
    Each contract type uses a configuration object built via a fluent builder:
    ```python
-   EmploymentContractSettings().builder().is_increased_costs(True).build()
+   EmploymentContractSettings().SettingsBuilder().is_increased_costs(True).build()
    ```
 
 3. **Salary Calculation**
@@ -57,7 +57,7 @@ from polish_salary_calc.summary.contract_summary import YearContractSummary, Mon
 rates = Rates()
 
 employment_settings = (
-    EmploymentContractSettings().builder()
+    EmploymentContractSettings().SettingsBuilder()
     .is_increased_costs(True)
     .is_active_business(False)
     .is_under_26(False)
@@ -66,7 +66,7 @@ employment_settings = (
 )
 
 mandate_settings = (
-    MandateContractSettings().builder()
+    MandateContractSettings().SettingsBuilder()
     .set_mandate_contract_type(MandateContractType.COMMON)
     .is_fifty(False)
     .is_fp(True)
@@ -75,14 +75,14 @@ mandate_settings = (
 )
 
 work_settings = (
-    WorkContractSettings().builder()
+    WorkContractSettings().SettingsBuilder()
     .is_a_lump_sum(False)
     .set_work_contract_type(WorkContractType.COMMON)
     .build()
 )
 
 self_employment_settings = (
-    SelfEmploymentSettings().builder()
+    SelfEmploymentSettings().SettingsBuilder()
     .set_self_employment_type(SelfEmploymentType.COMMON)
     .set_sick_pay(True)
     .set_tax_type(TaxType.A_LUMP_SUM)
@@ -113,6 +113,8 @@ print(self_employment)
 
 ```python
 year_employment_contract = YearContractSummary(rates, employment_settings, Decimal('8000'), SalaryType.NET)
+#or initiate from contract
+#year_employment_contract = YearContractSummary.from_contract(self_employment)
 year_employment_contract.calculate()
 
 year_employment_contract.modify_month_contracts([Months.MAR, Months.DEC], rates=rates, salary_base=Decimal('2100'))

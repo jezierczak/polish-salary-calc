@@ -23,7 +23,7 @@ def test_work_contract_common(
         emp_pension:Decimal,emp_disability:Decimal,
         accident:Decimal,fp:Decimal,fgsp:Decimal,total_gross:Decimal
         )->None:
-    work_contract_options = (WorkContractSettings().builder().
+    work_contract_options = (WorkContractSettings().SettingsBuilder().
                              set_work_contract_type(WorkContractType.COMMON).
                              build())
     rates = Rates()
@@ -63,7 +63,7 @@ def test_work_contract_the_same_company_with_50_costs(
         emp_pension:Decimal,emp_disability:Decimal,
         accident:Decimal,fp:Decimal,fgsp:Decimal,total_gross:Decimal
         )->None:
-    work_contract_options = (WorkContractSettings().builder().
+    work_contract_options = (WorkContractSettings().SettingsBuilder().
                              set_work_contract_type(WorkContractType.THE_SAME_COMPANY).is_fifty(True).
                              build())
     rates = Rates()
@@ -87,7 +87,7 @@ def test_work_contract_the_same_company_with_50_costs(
     assert wc.fgsp == fgsp
     assert wc.total_employer_cost ==total_gross
 
-    work_contract_options2 = (WorkContractSettings().builder().
+    work_contract_options2 = (WorkContractSettings().SettingsBuilder().
                               set_work_contract_type(WorkContractType.THE_SAME_COMPANY).is_fifty(False).
                               build())
 
@@ -101,7 +101,7 @@ def test_work_contract_the_same_company_with_50_costs(
     assert wc2.net_salary == Decimal('3511.20')
     assert wc2.total_employer_cost == Decimal('6024')
 
-    work_contract_options3 = (WorkContractSettings().builder().
+    work_contract_options3 = (WorkContractSettings().SettingsBuilder().
                               set_work_contract_type(WorkContractType.THE_SAME_COMPANY).is_fifty(False).
                               set_employee_ppk(Decimal('0.02')).set_employer_ppk(Decimal('0.015')).
                               build())
@@ -117,7 +117,7 @@ def test_work_contract_the_same_company_with_50_costs(
 
 
 def test_work_contract_common_under_200_with_a_lump_sum() -> None:
-    work_options = (WorkContractSettings().builder().
+    work_options = (WorkContractSettings().SettingsBuilder().
                     set_work_contract_type(WorkContractType.COMMON).
                     is_a_lump_sum(True).
                     build())

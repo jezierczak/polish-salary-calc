@@ -6,6 +6,28 @@ from polish_salary_calc.contract_settings.contract_settings import ContractSettn
 
 
 class EmploymentContractDict(TypedDict):
+    """
+    Serializable representation of EmploymentContractSettings used for exporting
+    and reconstructing settings (e.g., saving to JSON, passing between calculation
+    components, or storing configuration snapshots).
+
+    Fields:
+        increased_costs: Whether the taxpayer applies standard increased employee cost deduction.
+        cost_fifty_ratio: Ratio defining how much of the income is treated as 50% tax-deductible costs.
+        fp_fgsp: Determines whether contributions to FP and FGŚP are calculated.
+        active_business: Whether the employee is simultaneously running a business affecting ZUS basis rules.
+        under_26: If True, eligible for income tax exemption under PIT-0 for under-26 employees.
+        sick_pay: Employer-funded sickness benefit base (for absence calculations).
+        current_month_gross_sum: Year-to-date gross income accumulator.
+        social_security_base_sum: Running ZUS contribution calculation base for ZUS limit tracking.
+        cost_fifty_sum: Accumulator controlling use of the 50% cost limit.
+        tax_base_sum: Progressive tax accumulation (used to determine PIT threshold transitions).
+        employee_ppk: Accumulated PPK employee contributions.
+        employer_ppk: Accumulated PPK employer contributions.
+        accident_insurance_rate: Optional accident insurance contribution rate.
+        salary_deductions: Any post-tax deductions from net salary.
+        name: Optional identifier used in reporting/export.
+    """
     increased_costs: bool
     cost_fifty_ratio: Decimal
     fp_fgsp: bool
@@ -24,6 +46,23 @@ class EmploymentContractDict(TypedDict):
 
 @dataclass
 class EmploymentContractSettings(ContractSettngs):
+    """
+    Configuration state for Employment Contract (Umowa o pracę) calculations.
+    This class stores taxpayer attributes that modify payroll rules as well as
+    cumulative year-to-date values required to correctly apply Polish tax and
+    social security thresholds.
+
+    Extends:
+        ContractSettngs — provides shared accumulators and export utilities.
+
+    Key parameters:
+        increased_costs: Whether to apply standard employee cost deduction.
+        cost_fifty_ratio: Percentage (0.0–1.0) of income eligible for 50% tax-deductible costs.
+        fp_fgsp: Include FP / FGŚP employer contributions.
+        active_business: Determines contribution coordination rules for individuals also running a business.
+        under_26: Whether PIT-0 exemption applies.
+        sick_pay: Monthly sickness benefit entitlement.
+    """
     increased_costs: bool = False
     cost_fifty_ratio: Decimal = Decimal('0.0')
     fp_fgsp: bool = False
@@ -39,17 +78,53 @@ class EmploymentContractSettings(ContractSettngs):
     # accident_insurance_rate: Decimal | None = None
 
     def to_dict(self) ->Unpack[EmploymentContractDict]:
+        """
+        Convert settings to a serializable dictionary representation.
+
+        Returns:
+            EmploymentContractDict: A copy of the instance state suitable for
+            storage, logging, or transmitting between salary calculation modules.
+        """
         return self.__dict__
 
     @classmethod
     def from_dict(cls, data: EmploymentContractDict) -> Self:
+        """
+        Reconstruct a settings object from a previously exported dictionary.
+
+        Args:
+            data: Dictionary produced by `to_dict()` or `to_exporter_dict()`.
+
+        Returns:
+            EmploymentContractSettings: Restored settings instance.
+        """
         return cls(**data)
 
     @classmethod
     def builder(cls) -> 'SettingsBuilder':
+        """
+        Create a builder instance to allow fluent configuration.
+
+        Returns:
+            SettingsBuilder: Builder object for controlled attribute assignment.
+        """
         return cls.SettingsBuilder()
 
     class SettingsBuilder:
+        """
+        Fluent builder for EmploymentContractSettings. Enables constructing
+        settings objects step-by-step without requiring large constructors.
+
+        Example:
+            settings = (
+                EmploymentContractSettings.SettingsBuilder()
+                    .is_increased_costs(True)
+                    .set_cost_fifty_ratio(Decimal('0.5'))
+                    .is_under_26(True)
+                    .set_name("Employee A")
+                    .build()
+            )
+        """
         def __init__(self):
             self._options = EmploymentContractSettings()
 
@@ -114,4 +189,10 @@ class EmploymentContractSettings(ContractSettngs):
             return self
 
         def build(self) -> 'EmploymentContractSettings':
+            """
+            Finalize and return the constructed settings object.
+
+            Returns:
+                EmploymentContractSettings: The configured instance.
+            """
             return self._options
