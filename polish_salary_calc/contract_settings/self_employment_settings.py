@@ -1,4 +1,3 @@
-
 from polish_salary_calc.contract_settings.contract_settings import ContractSettngs
 from typing import TypedDict, Self, Unpack
 from dataclasses import dataclass
@@ -21,11 +20,13 @@ class SelfEmploymentType(Enum):
             Unregistered business activity ("działalność nierejestrowana"):
             No contributions and no formal registration required under revenue threshold.
     """
+
     COMMON = 1
     PREFERRED = 2
     STARTUP_RELIEF = 3
     UNREGISTERED_BUSINESS = 4
-    #SMALL_ZUS = 5
+    # SMALL_ZUS = 5
+
 
 class TaxType(Enum):
     """
@@ -39,9 +40,11 @@ class TaxType(Enum):
         A_LUMP_SUM:
             Lump-sum taxation ("ryczałt") based on sector-specific tax rate.
     """
+
     STANDARD = 1
     LINE_TAX = 2
     A_LUMP_SUM = 3
+
 
 class HealthBase(IntEnum):
     """
@@ -50,14 +53,25 @@ class HealthBase(IntEnum):
 
     These represent government-defined thresholds.
     """
+
     NONE = 0
     LOW = 1
     MEDIUM = 2
     HIGH = 3
 
-LUMP_RATES_ALLOWED ={
-    Decimal('0.02'),Decimal('0.03'),Decimal('0.055'),Decimal('0.085'),Decimal('0.10'),Decimal('0.12'),Decimal('0.14'),Decimal('0.15'),Decimal('0.17')
+
+LUMP_RATES_ALLOWED = {
+    Decimal("0.02"),
+    Decimal("0.03"),
+    Decimal("0.055"),
+    Decimal("0.085"),
+    Decimal("0.10"),
+    Decimal("0.12"),
+    Decimal("0.14"),
+    Decimal("0.15"),
+    Decimal("0.17"),
 }
+
 
 class SelfEmploymentOptionsDict(TypedDict):
     """
@@ -66,6 +80,7 @@ class SelfEmploymentOptionsDict(TypedDict):
 
     Each key corresponds to a field in SelfEmploymentSettings.
     """
+
     self_employment_type: SelfEmploymentType
     tax_type: TaxType
     tax_lump_rate: Decimal
@@ -74,11 +89,12 @@ class SelfEmploymentOptionsDict(TypedDict):
     is_sick_pay: bool
     sick_pay_days: int
     month_days: int
-    is_fp:bool
-    other_minimum_contract:bool
+    is_fp: bool
+    other_minimum_contract: bool
     # average_social_income_previous_year:Decimal
-    #is_a_lump_sum: bool
+    # is_a_lump_sum: bool
     costs: Decimal
+
 
 @dataclass
 class SelfEmploymentSettings(ContractSettngs):
@@ -115,20 +131,21 @@ class SelfEmploymentSettings(ContractSettngs):
         costs:
             Tax-deductible business expenses amount.
     """
+
     self_employment_type: SelfEmploymentType = SelfEmploymentType.COMMON
     tax_type: TaxType = TaxType.STANDARD
-    tax_lump_rate: Decimal = Decimal('0.17')
+    tax_lump_rate: Decimal = Decimal("0.17")
     health_base: HealthBase = HealthBase.NONE
     is_sick_pay: bool = False
     sick_pay_days: int = 0
     month_days: int = 0
-    is_fp:bool = True
-    other_minimum_contract:bool = False
+    is_fp: bool = True
+    other_minimum_contract: bool = False
     # average_social_income_previous_year:Decimal= Decimal('0.0')
-    #is_a_lump_sum: bool = False
-    costs: Decimal = Decimal('0.0')
+    # is_a_lump_sum: bool = False
+    costs: Decimal = Decimal("0.0")
 
-    def to_dict(self) ->Unpack[SelfEmploymentOptionsDict]:
+    def to_dict(self) -> Unpack[SelfEmploymentOptionsDict]:
         """
         Return configuration as a TypedDict representation.
 
@@ -151,7 +168,7 @@ class SelfEmploymentSettings(ContractSettngs):
         return cls(**data)
 
     @classmethod
-    def builder(cls) -> 'SettingsBuilder':
+    def builder(cls) -> "SettingsBuilder":
         """
         Create a fluent builder for this configuration.
 
@@ -175,18 +192,23 @@ class SelfEmploymentSettings(ContractSettngs):
                             .set_name("Freelance designer")
                             .build())
         """
+
         def __init__(self):
             """Initialize builder with default configuration."""
             self._options = SelfEmploymentSettings()
 
-        def set_self_employment_type(self, self_employment_type: SelfEmploymentType) -> Self:
+        def set_self_employment_type(
+            self, self_employment_type: SelfEmploymentType
+        ) -> Self:
             """Set ZUS contribution scheme."""
             self._options.self_employment_type = self_employment_type
             return self
+
         def set_tax_type(self, tax_type: TaxType) -> Self:
             """Set tax calculation regime."""
             self._options.tax_type = tax_type
             return self
+
         def set_tax_lump_rate(self, tax_lump_rate: Decimal) -> Self:
             """
             Set lump-sum tax rate.
@@ -196,20 +218,26 @@ class SelfEmploymentSettings(ContractSettngs):
             """
             self._options.tax_lump_rate = tax_lump_rate
             return self
+
         def set_health_base(self, health_base: HealthBase) -> Self:
             """Set health contribution scale."""
             self._options.health_base = health_base
             return self
-        def set_sick_pay(self,  is_sick_pay: bool, sick_pay_days: int = 0, month_days: int = 0) -> Self:
+
+        def set_sick_pay(
+            self, is_sick_pay: bool, sick_pay_days: int = 0, month_days: int = 0
+        ) -> Self:
             """Configure voluntary sickness insurance."""
-            self._options.is_sick_pay =  is_sick_pay
+            self._options.is_sick_pay = is_sick_pay
             self._options.sick_pay_days = sick_pay_days
             self._options.month_days = month_days
             return self
+
         def is_fp(self, is_fp: bool) -> Self:
             """Enable or disable Labor Fund contribution."""
             self._options.is_fp = is_fp
             return self
+
         def is_other_minimum_contract(self, other_minimum_contract: bool) -> Self:
             """Specify if taxpayer holds another minimum-wage contract."""
             self._options.other_minimum_contract = other_minimum_contract
@@ -223,28 +251,39 @@ class SelfEmploymentSettings(ContractSettngs):
             """Set tax-deductible business expenses."""
             self._options.costs = costs
             return self
+
         def set_current_month_gross_sum(self, current_month_gross_sum: Decimal) -> Self:
-             self._options.current_month_gross_sum = current_month_gross_sum
-             return self
-        def set_social_security_base_sum(self, social_security_base_sum: Decimal) -> Self:
+            self._options.current_month_gross_sum = current_month_gross_sum
+            return self
+
+        def set_social_security_base_sum(
+            self, social_security_base_sum: Decimal
+        ) -> Self:
             """Set the basis for ZUS calculation if overridden."""
             self._options.social_security_base_sum = social_security_base_sum
             return self
+
         def set_tax_base_sum(self, tax_base_sum: Decimal) -> Self:
             """Set taxable income base."""
             self._options.tax_base_sum = tax_base_sum
             return self
-        def set_accident_insurance_rate(self, accident_insurance_rate: Decimal | None) -> Self:
-             self._options.accident_insurance_rate = accident_insurance_rate
-             return self
+
+        def set_accident_insurance_rate(
+            self, accident_insurance_rate: Decimal | None
+        ) -> Self:
+            self._options.accident_insurance_rate = accident_insurance_rate
+            return self
+
         def set_salary_deductions(self, salary_deductions: Decimal) -> Self:
             """Set non-taxable deductions (e.g., allowances)."""
             self._options.salary_deductions = salary_deductions
             return self
-        def set_name(self,name: str) -> Self:
+
+        def set_name(self, name: str) -> Self:
             """Assign display name for the configuration."""
             self._options.name = name
             return self
-        def build(self) -> 'SelfEmploymentSettings':
+
+        def build(self) -> "SelfEmploymentSettings":
             """Finalize and return the configured settings instance."""
             return self._options

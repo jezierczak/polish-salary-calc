@@ -3,11 +3,11 @@ from decimal import Decimal
 from abc import ABC, abstractmethod
 from typing import override
 
-from polish_salary_calc.salary.salaryexporter import SalaryExporter,SalaryExporterDict
+from polish_salary_calc.salary.salaryexporter import SalaryExporter, SalaryExporterDict
 
 
 @dataclass
-class ContractSettngs(SalaryExporter,ABC):
+class ContractSettngs(SalaryExporter, ABC):
     """
     Abstract base class defining cumulative state and configuration shared between
     all contract types (Employment, Mandate, SelfEmployment, WorkContract).
@@ -24,15 +24,16 @@ class ContractSettngs(SalaryExporter,ABC):
     It also acts as the configuration object passed into monthly contract calculation,
     where concrete subclasses define contract-specific calculation rules.
     """
+
     name: str | None = None
-    current_month_gross_sum: Decimal = Decimal('0.0')
-    social_security_base_sum: Decimal = Decimal('0.0')
-    cost_fifty_sum: Decimal = Decimal('0.0')
-    tax_base_sum: Decimal = Decimal('0.0')
-    employee_ppk: Decimal = Decimal('0.0')
-    employer_ppk: Decimal = Decimal('0.0')
+    current_month_gross_sum: Decimal = Decimal("0.0")
+    social_security_base_sum: Decimal = Decimal("0.0")
+    cost_fifty_sum: Decimal = Decimal("0.0")
+    tax_base_sum: Decimal = Decimal("0.0")
+    employee_ppk: Decimal = Decimal("0.0")
+    employer_ppk: Decimal = Decimal("0.0")
     accident_insurance_rate: Decimal | None = None
-    salary_deductions: Decimal = Decimal('0.0')
+    salary_deductions: Decimal = Decimal("0.0")
 
     def __str__(self) -> str:
         """
@@ -50,7 +51,7 @@ class ContractSettngs(SalaryExporter,ABC):
             SalaryExporterDict: A mapping where the key is the class name and the
             value is the internal attribute dictionary.
         """
-        return {self.__class__.__name__:self.__dict__}
+        return {self.__class__.__name__: self.__dict__}
 
     @abstractmethod
     def to_dict(self) -> dict[str, str | Decimal | bool]:

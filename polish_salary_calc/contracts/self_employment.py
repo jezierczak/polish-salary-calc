@@ -1,79 +1,185 @@
 from decimal import Decimal
 from typing import override
 from polish_salary_calc.rates.rates import Rates
-from polish_salary_calc.contract_settings.self_employment_settings import SelfEmploymentSettings, SelfEmploymentType, TaxType, \
-    HealthBase, LUMP_RATES_ALLOWED
+from polish_salary_calc.contract_settings.self_employment_settings import (
+    SelfEmploymentSettings,
+    SelfEmploymentType,
+    TaxType,
+    HealthBase,
+    LUMP_RATES_ALLOWED,
+)
 from polish_salary_calc.contracts.base_contract import BaseContract
 from polish_salary_calc.salary.salary_utilities import SalaryUtilities
 
+
 class SelfEmployment(BaseContract[SelfEmploymentSettings]):
+    """Represents a self-employment (B2B) contract calculation.
+
+    This class implements all rules for different self-employment types
+    such as common, preferred (ulga na start), startup relief, or unregistered business.
+    It supports three taxation systems:
+    standard (progressive), linear, and lump-sum (ryczałt).
+
+    Attributes:
+        rates (Rates): Current tax and contribution rates.
+        contract_settings (SelfEmploymentSettings): Configuration options for self-employment.
+        salary_base (Decimal): Declared revenue or base income.
+        salary_gross (Decimal): Gross income after business costs.
+        net_salary (Decimal): Net income after all contributions and taxes.
+    """
+
     def __init__(self, rates: Rates, contract_settings: SelfEmploymentSettings) -> None:
+        """Initializes a self-employment contract instance.
+
+        Args:
+            rates (Rates): Rates object containing all system rates.
+            contract_settings (SelfEmploymentSettings): Specific contract configuration.
+        """
         super().__init__(rates, contract_settings)
 
     @override
     def calculate_salary_base(self) -> Decimal:
+        """Returns the declared revenue (base) for self-employment.
+
+        Returns:
+            Decimal: The input salary base.
+        """
         return super().calculate_salary_base()
 
     @override
     def calculate_sick_pay(self) -> Decimal:
-        return Decimal('0.0')
+        """Self-employed individuals do not have paid sick leave by default.
+
+        Returns:
+            Decimal: Always returns 0.0.
+        """
+        return Decimal("0.0")
 
     @override
     def calculate_salary_gross(self) -> Decimal:
+        """Calculates gross income after deducting declared business costs.
+
+        Returns:
+            Decimal: Gross salary value.
+        """
         return self.salary_base - self.contract_settings.costs
 
     @override
     def calculate_social_security_base(self) -> Decimal:
-        social_base = Decimal('0.0')
+        """Calculates the base amount for social security contributions.
+
+        Rules:
+            - `COMMON`: standard base.
+            - `PREFERRED`: reduced base.
+            - `STARTUP_RELIEF` or `UNREGISTERED_BUSINESS`: no social security.
+            - If `other_minimum_contract` is True, no base applies.
+            - Adjusts for sick leave days when applicable.
+
+        Returns:
+            Decimal: Social security base amount.
+
+        Raises:
+            NotImplementedError: If the self-employment type is unrecognized.
+        """
+        social_base = Decimal("0.0")
 
         if self.contract_settings.other_minimum_contract:
             return social_base
 
         match self.contract_settings.self_employment_type:
             case SelfEmploymentType.COMMON:
-                    social_base = self.rates.standard_social_insurance_base
+                social_base = self.rates.standard_social_insurance_base
             case SelfEmploymentType.PREFERRED:
-                    social_base = self.rates.reduced_social_insurance_base
-            case SelfEmploymentType.STARTUP_RELIEF | SelfEmploymentType.UNREGISTERED_BUSINESS:
-                    social_base = Decimal('0.0')
+                social_base = self.rates.reduced_social_insurance_base
+            case (
+                SelfEmploymentType.STARTUP_RELIEF
+                | SelfEmploymentType.UNREGISTERED_BUSINESS
+            ):
+                social_base = Decimal("0.0")
             # case SelfEmploymentType.SMALL_ZUS:
             #         social_base = self.contract_settings.average_social_income_previous_year*self.rates.
             case _:
-                raise NotImplementedError('Unknown self employment type: ' + self.contract_settings.self_employment_type)
+                raise NotImplementedError(
+                    "Unknown self employment type: "
+                    + self.contract_settings.self_employment_type
+                )
 
-        if self.contract_settings.is_sick_pay and self.contract_settings.sick_pay_days > 0 and self.contract_settings.month_days > 0:
-            social_base = social_base * (self.contract_settings.month_days - self.contract_settings.sick_pay_days) / self.contract_settings.month_days
+        if (
+            self.contract_settings.is_sick_pay
+            and self.contract_settings.sick_pay_days > 0
+            and self.contract_settings.month_days > 0
+        ):
+            social_base = (
+                social_base
+                * (
+                    self.contract_settings.month_days
+                    - self.contract_settings.sick_pay_days
+                )
+                / self.contract_settings.month_days
+            )
 
         return social_base
 
     @override
     def calculate_pension_insurance(self) -> Decimal:
+        """Calculates pension insurance (both employee and employer parts combined).
+
+        Returns:
+            Decimal: Pension insurance value.
+        """
         return SalaryUtilities.calculate_pension_or_disability_insurance(
-            self.rates.pension_insurance_rate+self.rates.employer_pension_contribution_rate,
+            self.rates.pension_insurance_rate
+            + self.rates.employer_pension_contribution_rate,
             self.social_security_base,
             self.contract_settings.social_security_base_sum,
-            self.rates.social_insurance_cap
+            self.rates.social_insurance_cap,
         )
 
     @override
     def calculate_disability_insurance(self) -> Decimal:
+        """Calculates disability insurance (both employee and employer parts combined).
+
+        Returns:
+            Decimal: Disability insurance value.
+        """
         return SalaryUtilities.calculate_pension_or_disability_insurance(
-            self.rates.disability_insurance_rate+self.rates.employer_disability_contribution_rate,
+            self.rates.disability_insurance_rate
+            + self.rates.employer_disability_contribution_rate,
             self.social_security_base,
             self.contract_settings.social_security_base_sum,
-            self.rates.social_insurance_cap
+            self.rates.social_insurance_cap,
         )
 
     @override
     def calculate_sickness_insurance(self) -> Decimal:
+        """Calculates sickness insurance if enabled in settings.
+
+        Returns:
+            Decimal: Sickness insurance value, or 0.0 if not applicable.
+        """
         if self.contract_settings.is_sick_pay:
             return super().calculate_sickness_insurance()
         else:
-            return Decimal('0.0')
+            return Decimal("0.0")
 
     @override
     def calculate_social_insurance_sum(self) -> Decimal:
-        return self.pension_insurance + self.disability_insurance + self.sickness_insurance + self.accident_insurance+self.fp+self.fgsp
+        """Calculates total sum of all social contributions.
+
+        Includes:
+            pension + disability + sickness + accident + FP + FGŚP.
+
+        Returns:
+            Decimal: Total social insurance sum.
+        """
+        return (
+            self.pension_insurance
+            + self.disability_insurance
+            + self.sickness_insurance
+            + self.accident_insurance
+            + self.fp
+            + self.fgsp
+        )
 
     @override
     def calculate_cost(self) -> Decimal:
@@ -81,65 +187,112 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
 
     @override
     def _calculate_regular_cost(self) -> Decimal:
+        """Returns fixed business costs as declared by the user.
+
+        Returns:
+            Decimal: Declared cost value.
+        """
         return self.contract_settings.costs
 
     @override
     def _calculate_author_rights_cost(self) -> Decimal:
-        return Decimal('0.0')
+        return Decimal("0.0")
 
     @override
     def calculate_health_insurance_base(self) -> Decimal:
-        if self.contract_settings.self_employment_type == SelfEmploymentType.UNREGISTERED_BUSINESS:
-            return Decimal('0.0')
+        """Calculates health insurance base for self-employment.
+
+        Rules:
+            - For unregistered business: 0.
+            - For lump-sum taxation: determined by thresholds and chosen health base.
+            - Otherwise: max(health_insurance_base, gross - social_insurance_sum).
+
+        Returns:
+            Decimal: Health insurance base value.
+        """
+        if (
+            self.contract_settings.self_employment_type
+            == SelfEmploymentType.UNREGISTERED_BUSINESS
+        ):
+            return Decimal("0.0")
 
         if self.contract_settings.tax_type == TaxType.A_LUMP_SUM:
             if self.contract_settings.health_base == HealthBase.NONE:
-                cap = Decimal('12')*self.salary_base
+                cap = Decimal("12") * self.salary_base
                 if cap <= self.rates.se_lump_health_insurance_cap[0]:
                     return self.rates.health_insurance_lump_base[0]
                 elif cap <= self.rates.se_lump_health_insurance_cap[1]:
                     return self.rates.health_insurance_lump_base[1]
                 else:
                     return self.rates.health_insurance_lump_base[2]
-            else: return self.rates.health_insurance_lump_base[self.contract_settings.health_base.value - 1]
+            else:
+                return self.rates.health_insurance_lump_base[
+                    self.contract_settings.health_base.value - 1
+                ]
 
         min_base = self.rates.health_insurance_base
         output = self.salary_gross - self.social_insurance_sum
-        return max(min_base,output)
+        return max(min_base, output)
 
     @override
     def calculate_health_insurance(self) -> Decimal:
         if self.contract_settings.tax_type == TaxType.LINE_TAX:
             out = self.health_insurance_base * self.rates.health_insurance_rate_line_tax
-            min_health_insurance = self.rates.health_insurance_base * self.rates.health_insurance_rate
-            return max(min_health_insurance,out)
+            min_health_insurance = (
+                self.rates.health_insurance_base * self.rates.health_insurance_rate
+            )
+            return max(min_health_insurance, out)
 
         return super().calculate_health_insurance()
 
     @override
     def calculate_tax_base(self) -> Decimal:
-        if self.contract_settings.tax_type==TaxType.A_LUMP_SUM:
+        if self.contract_settings.tax_type == TaxType.A_LUMP_SUM:
             return self.salary_base
 
         return self.salary_gross - self.social_insurance_sum
 
     @override
     def calculate_tax(self) -> Decimal:
+        """Calculates tax based on the selected tax type.
+
+        Tax modes:
+            - STANDARD: progressive scale with thresholds and free base.
+            - LINE_TAX: flat 19%.
+            - A_LUMP_SUM: flat % of revenue, limited to allowed rates.
+
+        Returns:
+            Decimal: Calculated tax value.
+
+        Raises:
+            ValueError: If invalid lump-sum rate is selected.
+        """
         if self.contract_settings.tax_type == TaxType.STANDARD:
             present_tax_base_sum = self.tax_base + self.contract_settings.tax_base_sum
             if present_tax_base_sum <= self.rates.tax_free_base:
-                return Decimal('0.0')
-            elif  self.rates.tax_free_base <= present_tax_base_sum <= self.rates.tax_threshold:
+                return Decimal("0.0")
+            elif (
+                self.rates.tax_free_base
+                <= present_tax_base_sum
+                <= self.rates.tax_threshold
+            ):
                 if self.contract_settings.tax_base_sum <= self.rates.tax_free_base:
-                    return (present_tax_base_sum-self.rates.tax_free_base)*self.rates.income_tax[0]
-                else: return self.tax_base*self.rates.income_tax[0]
+                    return (
+                        present_tax_base_sum - self.rates.tax_free_base
+                    ) * self.rates.income_tax[0]
+                else:
+                    return self.tax_base * self.rates.income_tax[0]
             else:
                 if self.contract_settings.tax_base_sum <= self.rates.tax_threshold:
-                    return ((present_tax_base_sum-self.rates.tax_threshold) * self.rates.income_tax[1] +
-                            (self.rates.tax_threshold - self.contract_settings.tax_base_sum) * self.rates.income_tax[0])
-                else: return self.tax_base*self.rates.income_tax[1]
+                    return (
+                        present_tax_base_sum - self.rates.tax_threshold
+                    ) * self.rates.income_tax[1] + (
+                        self.rates.tax_threshold - self.contract_settings.tax_base_sum
+                    ) * self.rates.income_tax[0]
+                else:
+                    return self.tax_base * self.rates.income_tax[1]
         elif self.contract_settings.tax_type == TaxType.LINE_TAX:
-            return self.tax_base *self.rates.line_tax_rate
+            return self.tax_base * self.rates.line_tax_rate
         else:
             if self.contract_settings.tax_lump_rate not in LUMP_RATES_ALLOWED:
                 raise ValueError("Lump rate not allowed")
@@ -147,7 +300,7 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
 
     @override
     def calculate_ppk_tax(self) -> Decimal:
-        return Decimal('0.0')
+        return Decimal("0.0")
 
     @override
     def calculate_salary_deductions(self) -> Decimal:
@@ -155,20 +308,24 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
 
     @override
     def calculate_employee_ppk_contribution(self) -> Decimal:
-        return Decimal('0.0')
+        return Decimal("0.0")
 
     @override
     def calculate_net_salary(self) -> Decimal:
-        return self.salary_gross - self.social_insurance_sum-self.tax_advance_payment-self.health_insurance
+        return (
+            self.salary_gross
+            - self.social_insurance_sum
+            - self.tax_advance_payment
+            - self.health_insurance
+        )
 
     @override
     def calculate_pension_contribution(self) -> Decimal:
-        return Decimal('0.0')
+        return Decimal("0.0")
 
     @override
-    def calculate_disability_contribution(self)-> Decimal:
-        return Decimal('0.0')
-
+    def calculate_disability_contribution(self) -> Decimal:
+        return Decimal("0.0")
 
     @override
     def calculate_accident_insurance(self) -> Decimal:
@@ -177,20 +334,20 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
     @override
     def calculate_fp(self) -> Decimal:
         if not self.contract_settings.is_fp:
-            return Decimal('0')
+            return Decimal("0")
         else:
-            if self.social_security_base >self.rates.minimum_wage:
+            if self.social_security_base > self.rates.minimum_wage:
                 return self.social_security_base * self.rates.fp_rate
             else:
-                return Decimal('0')
+                return Decimal("0")
 
     @override
     def calculate_fgsp(self) -> Decimal:
-        return Decimal('0.0')
+        return Decimal("0.0")
 
     @override
     def calculate_employer_ppk_contribution(self) -> Decimal:
-        return Decimal('0.0')
+        return Decimal("0.0")
 
     @override
     def calculate_total_employer_cost(self) -> Decimal:
@@ -198,39 +355,90 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
 
     @override
     def calculate_gross(self) -> None:
-        self.salary_base = self.calculate_salary_base().quantize(Decimal('0.01'))
-        self.salary_sick_pay = self.calculate_sick_pay().quantize(Decimal('0.01'))
-        self.salary_gross= self.calculate_salary_gross().quantize(Decimal('0.01'))
-        self.social_security_base = self.calculate_social_security_base().quantize(Decimal('0.01'))
-        self.social_security_base_total = self.calculate_social_security_base_total().quantize(Decimal('0.01'))
-        self.pension_insurance = self.calculate_pension_insurance().quantize(Decimal('0.01'))
-        self.disability_insurance = self.calculate_disability_insurance().quantize(Decimal('0.01'))
-        self.sickness_insurance = self.calculate_sickness_insurance().quantize(Decimal('0.01'))
-        self.regular_cost = self._calculate_regular_cost().quantize(Decimal('0.01'))
-        self.author_rights_cost = self._calculate_author_rights_cost().quantize(Decimal('0.01'))
-        self.cost = self.calculate_cost().quantize(Decimal('0.01'))
-        self.cost_fifty_total = self.calculate_cost_fifty_total().quantize(Decimal('0.01'))
-        self.employee_ppk_contribution = self.calculate_employee_ppk_contribution().quantize(Decimal('0.01'))
-        self.employer_pension_contribution = self.calculate_pension_contribution().quantize(Decimal('0.01'))
-        self.employer_disability_contribution = self.calculate_disability_contribution().quantize(Decimal('0.01'))
-        self.accident_insurance = self.calculate_accident_insurance().quantize(Decimal('0.01'))
-        self.fp = self.calculate_fp().quantize(Decimal('0.01'))
-        self.fgsp = self.calculate_fgsp().quantize(Decimal('0.01'))
-        self.social_insurance_sum = self.calculate_social_insurance_sum().quantize(Decimal('0.01'))
-        self.tax_base = self.calculate_tax_base().quantize(Decimal('1'))
-        self.tax_base_total = self.calculate_tax_base_total().quantize(Decimal('0.01'))
-        self.ppk_tax = self.calculate_ppk_tax().quantize(Decimal('0.01'))
-        self.tax = self._add_ppk_tax_and_check_if_is_positive(self.calculate_tax()).quantize(Decimal('0.01'))
-        self.health_insurance_base = self.calculate_health_insurance_base().quantize(Decimal('0.01'))
-        self.health_insurance = self.calculate_health_insurance().quantize(Decimal('0.01'))
-        self.salary_deductions = self.calculate_salary_deductions().quantize(Decimal('0.01'))
-        self.tax_advance_payment = self.calculate_tax_advance_payment().quantize(Decimal('1'))
-        self.employer_ppk_contribution = self.calculate_employer_ppk_contribution().quantize(Decimal('0.01'))
-        self.net_salary = self.calculate_net_salary().quantize(Decimal('0.01'))
-        self.total_employer_cost = self.calculate_total_employer_cost().quantize(Decimal('0.01'))
+        """Performs full gross salary calculation.
 
-        if (self.contract_settings.self_employment_type==SelfEmploymentType.UNREGISTERED_BUSINESS and
-            self.salary_base > self.rates.unregistered_cap):
-            raise ValueError("Salary base for unregistered business exceeded unregistered business income cap")
+        Sequentially calculates and assigns all key salary components:
+        - Social and health contributions
+        - Taxes
+        - Net and total employer cost
 
+        Raises:
+            ValueError: If unregistered business exceeds the allowed income cap.
+        """
+        self.salary_base = self.calculate_salary_base().quantize(Decimal("0.01"))
+        self.salary_sick_pay = self.calculate_sick_pay().quantize(Decimal("0.01"))
+        self.salary_gross = self.calculate_salary_gross().quantize(Decimal("0.01"))
+        self.social_security_base = self.calculate_social_security_base().quantize(
+            Decimal("0.01")
+        )
+        self.social_security_base_total = (
+            self.calculate_social_security_base_total().quantize(Decimal("0.01"))
+        )
+        self.pension_insurance = self.calculate_pension_insurance().quantize(
+            Decimal("0.01")
+        )
+        self.disability_insurance = self.calculate_disability_insurance().quantize(
+            Decimal("0.01")
+        )
+        self.sickness_insurance = self.calculate_sickness_insurance().quantize(
+            Decimal("0.01")
+        )
+        self.regular_cost = self._calculate_regular_cost().quantize(Decimal("0.01"))
+        self.author_rights_cost = self._calculate_author_rights_cost().quantize(
+            Decimal("0.01")
+        )
+        self.cost = self.calculate_cost().quantize(Decimal("0.01"))
+        self.cost_fifty_total = self.calculate_cost_fifty_total().quantize(
+            Decimal("0.01")
+        )
+        self.employee_ppk_contribution = (
+            self.calculate_employee_ppk_contribution().quantize(Decimal("0.01"))
+        )
+        self.employer_pension_contribution = (
+            self.calculate_pension_contribution().quantize(Decimal("0.01"))
+        )
+        self.employer_disability_contribution = (
+            self.calculate_disability_contribution().quantize(Decimal("0.01"))
+        )
+        self.accident_insurance = self.calculate_accident_insurance().quantize(
+            Decimal("0.01")
+        )
+        self.fp = self.calculate_fp().quantize(Decimal("0.01"))
+        self.fgsp = self.calculate_fgsp().quantize(Decimal("0.01"))
+        self.social_insurance_sum = self.calculate_social_insurance_sum().quantize(
+            Decimal("0.01")
+        )
+        self.tax_base = self.calculate_tax_base().quantize(Decimal("1"))
+        self.tax_base_total = self.calculate_tax_base_total().quantize(Decimal("0.01"))
+        self.ppk_tax = self.calculate_ppk_tax().quantize(Decimal("0.01"))
+        self.tax = self._add_ppk_tax_and_check_if_is_positive(
+            self.calculate_tax()
+        ).quantize(Decimal("0.01"))
+        self.health_insurance_base = self.calculate_health_insurance_base().quantize(
+            Decimal("0.01")
+        )
+        self.health_insurance = self.calculate_health_insurance().quantize(
+            Decimal("0.01")
+        )
+        self.salary_deductions = self.calculate_salary_deductions().quantize(
+            Decimal("0.01")
+        )
+        self.tax_advance_payment = self.calculate_tax_advance_payment().quantize(
+            Decimal("1")
+        )
+        self.employer_ppk_contribution = (
+            self.calculate_employer_ppk_contribution().quantize(Decimal("0.01"))
+        )
+        self.net_salary = self.calculate_net_salary().quantize(Decimal("0.01"))
+        self.total_employer_cost = self.calculate_total_employer_cost().quantize(
+            Decimal("0.01")
+        )
 
+        if (
+            self.contract_settings.self_employment_type
+            == SelfEmploymentType.UNREGISTERED_BUSINESS
+            and self.salary_base > self.rates.unregistered_cap
+        ):
+            raise ValueError(
+                "Salary base for unregistered business exceeded unregistered business income cap"
+            )

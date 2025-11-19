@@ -1,15 +1,17 @@
-
 from polish_salary_calc.contract_settings.contract_settings import ContractSettngs
 from typing import TypedDict, Self, Unpack
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
 
+
 class WorkContractType(Enum):
     """Type of employment contract for determining social insurance handling
     and cost deduction rules."""
+
     COMMON = 0
     THE_SAME_COMPANY = 1
+
 
 class WorkContractOptionsDict(TypedDict):
     """Dictionary representation of `WorkContractSettings`.
@@ -22,9 +24,10 @@ class WorkContractOptionsDict(TypedDict):
         is_a_lump_sum: bool
             Whether lump-sum taxation applies (ryczałt).
     """
+
     work_contract_type: WorkContractType
     is_fifty: bool
-    is_a_lump_sum:bool #ryczałt
+    is_a_lump_sum: bool  # ryczałt
 
 
 @dataclass
@@ -43,11 +46,12 @@ class WorkContractSettings(ContractSettngs):
         is_a_lump_sum (bool):
             Indicates whether lump-sum (ryczałt) taxation applies.
     """
+
     work_contract_type: WorkContractType = WorkContractType.COMMON
     is_fifty: bool = False
     is_a_lump_sum: bool = False
 
-    def to_dict(self) ->Unpack[WorkContractOptionsDict]:
+    def to_dict(self) -> Unpack[WorkContractOptionsDict]:
         """Return the settings as a dictionary.
 
         Returns:
@@ -59,16 +63,16 @@ class WorkContractSettings(ContractSettngs):
     def from_dict(cls, data: WorkContractOptionsDict) -> Self:
         """Create a `WorkContractSettings` object from a dictionary.
 
-         Args:
-             data (WorkContractOptionsDict): A settings dictionary, typically read from a saved config.
+        Args:
+            data (WorkContractOptionsDict): A settings dictionary, typically read from a saved config.
 
-         Returns:
-             WorkContractSettings: New settings instance populated with provided data.
-         """
+        Returns:
+            WorkContractSettings: New settings instance populated with provided data.
+        """
         return cls(**data)
 
     @classmethod
-    def builder(cls) -> 'SettingsBuilder':
+    def builder(cls) -> "SettingsBuilder":
         """Return a builder object for fluent-style configuration.
 
         Returns:
@@ -87,6 +91,7 @@ class WorkContractSettings(ContractSettngs):
                 .build()
             )
         """
+
         def __init__(self):
             self._options = WorkContractSettings()
 
@@ -100,12 +105,14 @@ class WorkContractSettings(ContractSettngs):
             self._options.is_fifty = is_fifty
             return self
 
-        def  is_a_lump_sum(self,  is_a_lump_sum: bool) -> Self:
+        def is_a_lump_sum(self, is_a_lump_sum: bool) -> Self:
             """Enable or disable lump-sum taxation (ryczałt)."""
-            self._options. is_a_lump_sum =  is_a_lump_sum
+            self._options.is_a_lump_sum = is_a_lump_sum
             return self
 
-        def set_social_security_base_sum(self, social_security_base_sum: Decimal) -> Self:
+        def set_social_security_base_sum(
+            self, social_security_base_sum: Decimal
+        ) -> Self:
             """Set cumulative social security contribution base (used for annual caps)."""
             self._options.social_security_base_sum = social_security_base_sum
             return self
@@ -135,11 +142,11 @@ class WorkContractSettings(ContractSettngs):
             self._options.salary_deductions = salary_deductions
             return self
 
-        def set_name(self,name: str) -> Self:
+        def set_name(self, name: str) -> Self:
             """Set optional contract label (for UI or logs)."""
             self._options.name = name
             return self
 
-        def build(self) -> 'WorkContractSettings':
+        def build(self) -> "WorkContractSettings":
             """Finalize and return the settings instance."""
             return self._options

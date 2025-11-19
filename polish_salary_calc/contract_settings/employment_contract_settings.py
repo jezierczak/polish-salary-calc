@@ -28,6 +28,7 @@ class EmploymentContractDict(TypedDict):
         salary_deductions: Any post-tax deductions from net salary.
         name: Optional identifier used in reporting/export.
     """
+
     increased_costs: bool
     cost_fifty_ratio: Decimal
     fp_fgsp: bool
@@ -43,6 +44,7 @@ class EmploymentContractDict(TypedDict):
     accident_insurance_rate: Decimal | None
     salary_deductions: Decimal
     name: str
+
 
 @dataclass
 class EmploymentContractSettings(ContractSettngs):
@@ -63,12 +65,13 @@ class EmploymentContractSettings(ContractSettngs):
         under_26: Whether PIT-0 exemption applies.
         sick_pay: Monthly sickness benefit entitlement.
     """
+
     increased_costs: bool = False
-    cost_fifty_ratio: Decimal = Decimal('0.0')
+    cost_fifty_ratio: Decimal = Decimal("0.0")
     fp_fgsp: bool = False
     active_business: bool = False
     under_26: bool = False
-    sick_pay: Decimal = Decimal('0.0')
+    sick_pay: Decimal = Decimal("0.0")
     # current_month_gross_sum: Decimal = Decimal('0.0')
     # social_security_base_sum: Decimal = Decimal('0.0')
     # cost_fifty_sum: Decimal = Decimal('0.0')
@@ -77,7 +80,7 @@ class EmploymentContractSettings(ContractSettngs):
     # employer_ppk: Decimal = Decimal('0.0')
     # accident_insurance_rate: Decimal | None = None
 
-    def to_dict(self) ->Unpack[EmploymentContractDict]:
+    def to_dict(self) -> Unpack[EmploymentContractDict]:
         """
         Convert settings to a serializable dictionary representation.
 
@@ -101,7 +104,7 @@ class EmploymentContractSettings(ContractSettngs):
         return cls(**data)
 
     @classmethod
-    def builder(cls) -> 'SettingsBuilder':
+    def builder(cls) -> "SettingsBuilder":
         """
         Create a builder instance to allow fluent configuration.
 
@@ -125,6 +128,7 @@ class EmploymentContractSettings(ContractSettngs):
                     .build()
             )
         """
+
         def __init__(self):
             self._options = EmploymentContractSettings()
 
@@ -156,7 +160,9 @@ class EmploymentContractSettings(ContractSettngs):
             self._options.current_month_gross_sum = current_month_gross_sum
             return self
 
-        def set_social_security_base_sum(self, social_security_base_sum: Decimal) -> Self:
+        def set_social_security_base_sum(
+            self, social_security_base_sum: Decimal
+        ) -> Self:
             self._options.social_security_base_sum = social_security_base_sum
             return self
 
@@ -176,7 +182,9 @@ class EmploymentContractSettings(ContractSettngs):
             self._options.employer_ppk = employer_ppk
             return self
 
-        def set_accident_insurance_rate(self, accident_insurance_rate: Decimal | None) -> Self:
+        def set_accident_insurance_rate(
+            self, accident_insurance_rate: Decimal | None
+        ) -> Self:
             self._options.accident_insurance_rate = accident_insurance_rate
             return self
 
@@ -184,11 +192,11 @@ class EmploymentContractSettings(ContractSettngs):
             self._options.salary_deductions = salary_deductions
             return self
 
-        def set_name(self,name: str) -> Self:
+        def set_name(self, name: str) -> Self:
             self._options.name = name
             return self
 
-        def build(self) -> 'EmploymentContractSettings':
+        def build(self) -> "EmploymentContractSettings":
             """
             Finalize and return the constructed settings object.
 

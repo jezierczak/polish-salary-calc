@@ -1,9 +1,12 @@
 from decimal import Decimal
 from typing import override
 from polish_salary_calc.rates.rates import Rates
-from polish_salary_calc.contract_settings.employment_contract_settings import EmploymentContractSettings
+from polish_salary_calc.contract_settings.employment_contract_settings import (
+    EmploymentContractSettings,
+)
 from polish_salary_calc.contracts.base_contract import BaseContract
 from polish_salary_calc.salary.salary_utilities import SalaryUtilities
+
 
 class EmploymentContract(BaseContract[EmploymentContractSettings]):
     """
@@ -17,7 +20,10 @@ class EmploymentContract(BaseContract[EmploymentContractSettings]):
         rates (Rates): Current applicable social insurance and tax rates.
         contract_settings (EmploymentContractSettings): Configuration and parameters of the contract.
     """
-    def __init__(self, rates: Rates, contract_settings: EmploymentContractSettings) -> None:
+
+    def __init__(
+        self, rates: Rates, contract_settings: EmploymentContractSettings
+    ) -> None:
         """
         Initialize an EmploymentContract instance.
 
@@ -35,11 +41,11 @@ class EmploymentContract(BaseContract[EmploymentContractSettings]):
     @override
     def calculate_sick_pay(self) -> Decimal:
         """
-         Return the sick pay amount declared in contract settings.
+        Return the sick pay amount declared in contract settings.
 
-         Returns:
-             Decimal: Sick pay value.
-         """
+        Returns:
+            Decimal: Sick pay value.
+        """
         return self.contract_settings.sick_pay
 
     @override
@@ -99,7 +105,7 @@ class EmploymentContract(BaseContract[EmploymentContractSettings]):
             self.contract_settings.cost_fifty_ratio,
             self.health_insurance_base,
             self.contract_settings.cost_fifty_sum,
-            self.rates.cost_threshold
+            self.rates.cost_threshold,
         )
 
     @override
@@ -126,21 +132,22 @@ class EmploymentContract(BaseContract[EmploymentContractSettings]):
         - If employee is under 26: tax = 0.
         - If business activity is inactive: standard tax-free amount applies.
         """
-        if self.contract_settings.under_26: return Decimal('0.0')
+        if self.contract_settings.under_26:
+            return Decimal("0.0")
         if not self.contract_settings.active_business:
             out = SalaryUtilities.calculate_tax(
                 self.rates.income_tax,
                 self.tax_base,
                 self.contract_settings.tax_base_sum,
                 self.rates.tax_threshold,
-                self.rates.month_tax_free
+                self.rates.month_tax_free,
             )
         else:
             out = SalaryUtilities.calculate_tax(
                 self.rates.income_tax,
                 self.tax_base,
                 self.contract_settings.tax_base_sum,
-                self.rates.tax_threshold
+                self.rates.tax_threshold,
             )
         return out
 
@@ -151,7 +158,8 @@ class EmploymentContract(BaseContract[EmploymentContractSettings]):
 
         If employee is under 26 years old: tax is zero.
         """
-        if self.contract_settings.under_26: return Decimal('0.0')
+        if self.contract_settings.under_26:
+            return Decimal("0.0")
         return super().calculate_ppk_tax()
 
     @override
@@ -168,13 +176,14 @@ class EmploymentContract(BaseContract[EmploymentContractSettings]):
     def calculate_net_salary(self) -> Decimal:
         """Return the net salary (take-home pay)."""
         return super().calculate_net_salary()
+
     @override
     def calculate_pension_contribution(self) -> Decimal:
         """Return employer pension contribution."""
         return super().calculate_pension_contribution()
 
     @override
-    def calculate_disability_contribution(self)-> Decimal:
+    def calculate_disability_contribution(self) -> Decimal:
         """Return employer disability insurance contribution."""
         return super().calculate_disability_contribution()
 
@@ -191,7 +200,7 @@ class EmploymentContract(BaseContract[EmploymentContractSettings]):
         Disabled if `fp_fgsp` flag is False.
         """
         if not self.contract_settings.fp_fgsp:
-            return Decimal('0')
+            return Decimal("0")
         else:
             return super().calculate_fp()
 
@@ -203,6 +212,6 @@ class EmploymentContract(BaseContract[EmploymentContractSettings]):
         Disabled if `fp_fgsp` flag is False.
         """
         if not self.contract_settings.fp_fgsp:
-            return Decimal('0')
+            return Decimal("0")
         else:
             return super().calculate_fgsp()

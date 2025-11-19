@@ -7,12 +7,13 @@ class SalaryUtilities:
     These functions are used internally by salary computation routines and are isolated
     to support reuse and testability.
     """
+
     @staticmethod
     def calculate_pension_or_disability_insurance(
-            pension_or_disability_insurance_rate: Decimal,
-            social_security_base: Decimal,
-            social_security_base_sum: Decimal,
-            social_insurance_cap:  Decimal
+        pension_or_disability_insurance_rate: Decimal,
+        social_security_base: Decimal,
+        social_security_base_sum: Decimal,
+        social_insurance_cap: Decimal,
     ) -> Decimal:
         """
         Calculates pension or disability insurance contribution while respecting the annual
@@ -31,59 +32,65 @@ class SalaryUtilities:
         """
         total_social_security_base_sum = social_security_base_sum + social_security_base
         if total_social_security_base_sum <= social_insurance_cap:
-            return social_security_base *pension_or_disability_insurance_rate
-        elif total_social_security_base_sum - social_security_base > social_insurance_cap:
-            return Decimal('0.0')
+            return social_security_base * pension_or_disability_insurance_rate
+        elif (
+            total_social_security_base_sum - social_security_base > social_insurance_cap
+        ):
+            return Decimal("0.0")
         else:
-            return (social_security_base - (total_social_security_base_sum - social_insurance_cap))*pension_or_disability_insurance_rate
+            return (
+                social_security_base
+                - (total_social_security_base_sum - social_insurance_cap)
+            ) * pension_or_disability_insurance_rate
 
     @staticmethod
     def calculate_author_rights_cost(
-            income_tax_deduction: Decimal,
-            cost_ratio: Decimal,
-            base: Decimal,
-            cost_fifty_sum: Decimal,
-            cost_threshold: Decimal
-        )-> Decimal:
+        income_tax_deduction: Decimal,
+        cost_ratio: Decimal,
+        base: Decimal,
+        cost_fifty_sum: Decimal,
+        cost_threshold: Decimal,
+    ) -> Decimal:
         """
-            Calculates deductible cost for author’s rights (50% cost of income), respecting the annual threshold.
+        Calculates deductible cost for author’s rights (50% cost of income), respecting the annual threshold.
 
-            The deductible applies only to the portion of income exceeding the tax deduction threshold.
-            Additionally, it may be limited by an annual limit.
+        The deductible applies only to the portion of income exceeding the tax deduction threshold.
+        Additionally, it may be limited by an annual limit.
 
-            Args:
-                income_tax_deduction (Decimal): Fixed deduction reducing taxable income before applying cost ratio.
-                cost_ratio (Decimal): Cost deduction ratio (commonly 0.50).
-                base (Decimal): Gross income subject to cost deduction in this period.
-                cost_fifty_sum (Decimal): Accumulated author’s rights costs from previous periods.
-                cost_threshold (Decimal): Annual maximum limit for 50% costs.
+        Args:
+            income_tax_deduction (Decimal): Fixed deduction reducing taxable income before applying cost ratio.
+            cost_ratio (Decimal): Cost deduction ratio (commonly 0.50).
+            base (Decimal): Gross income subject to cost deduction in this period.
+            cost_fifty_sum (Decimal): Accumulated author’s rights costs from previous periods.
+            cost_threshold (Decimal): Annual maximum limit for 50% costs.
 
-            Returns:
-                Decimal: Deductible cost amount for this period, capped at the annual limit.
+        Returns:
+            Decimal: Deductible cost amount for this period, capped at the annual limit.
         """
 
-        #if cost_fifty_ratio>0:
+        # if cost_fifty_ratio>0:
         if base > income_tax_deduction:
             cost_fifty = (base - income_tax_deduction) * cost_ratio
         else:
-            cost_fifty = Decimal('0.0')
-        total_cost_fifty_sum  = cost_fifty_sum +  cost_fifty
+            cost_fifty = Decimal("0.0")
+        total_cost_fifty_sum = cost_fifty_sum + cost_fifty
         if total_cost_fifty_sum <= cost_threshold:
             return cost_fifty
         elif total_cost_fifty_sum - cost_fifty < cost_threshold:
-            return cost_threshold - (total_cost_fifty_sum -  cost_fifty)
+            return cost_threshold - (total_cost_fifty_sum - cost_fifty)
         else:
-            return Decimal('0.0')
-    #else: return Decimal('0.0')
+            return Decimal("0.0")
+
+    # else: return Decimal('0.0')
 
     @staticmethod
     def calculate_tax(
-            income_tax: tuple[Decimal,Decimal],
-            tax_base: Decimal,
-            tax_base_sum: Decimal,
-            tax_threshold: Decimal,
-            month_tax_free: Decimal = Decimal('0.0'),
-        )-> Decimal:
+        income_tax: tuple[Decimal, Decimal],
+        tax_base: Decimal,
+        tax_base_sum: Decimal,
+        tax_threshold: Decimal,
+        month_tax_free: Decimal = Decimal("0.0"),
+    ) -> Decimal:
         """
         Calculates income tax for the current period using progressive tax thresholds.
 
@@ -107,16 +114,12 @@ class SalaryUtilities:
         if tax_base_sum_total <= tax_threshold:
             out = tax_base * income_tax[0] - month_tax_free
         elif tax_base_sum_total - tax_base <= tax_threshold:
-            tax_1 = (tax_threshold - (tax_base_sum_total - tax_base)) * income_tax[0] - month_tax_free
+            tax_1 = (tax_threshold - (tax_base_sum_total - tax_base)) * income_tax[
+                0
+            ] - month_tax_free
             tax_2 = (tax_base_sum_total - tax_threshold) * income_tax[1]
             out = tax_1 + tax_2
         else:
             out = tax_base * income_tax[1]
 
-        return out if out > 0 else Decimal('0.0')
-
-
-
-
-
-
+        return out if out > 0 else Decimal("0.0")

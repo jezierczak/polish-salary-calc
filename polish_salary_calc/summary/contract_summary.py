@@ -7,13 +7,20 @@ from polish_salary_calc.contracts.employment_contract import EmploymentContract
 from polish_salary_calc.contracts.mandate_contract import MandateContract
 from polish_salary_calc.contracts.self_employment import SelfEmployment
 from polish_salary_calc.contracts.work_contract import WorkContract
-from polish_salary_calc.contract_settings.self_employment_settings import SelfEmploymentSettings
-from polish_salary_calc.contract_settings.work_contract_settings import WorkContractSettings
-from polish_salary_calc.contract_settings.employment_contract_settings import EmploymentContractSettings
-from polish_salary_calc.contract_settings.mandate_contract_settings import MandateContractSettings
+from polish_salary_calc.contract_settings.self_employment_settings import (
+    SelfEmploymentSettings,
+)
+from polish_salary_calc.contract_settings.work_contract_settings import (
+    WorkContractSettings,
+)
+from polish_salary_calc.contract_settings.employment_contract_settings import (
+    EmploymentContractSettings,
+)
+from polish_salary_calc.contract_settings.mandate_contract_settings import (
+    MandateContractSettings,
+)
 from polish_salary_calc.rates.rates import Rates
 from polish_salary_calc.salary.salary import SalaryType, Salary
-
 
 
 class Months(Enum):
@@ -30,6 +37,7 @@ class Months(Enum):
     NOV = "NOV"
     DEC = "DEC"
 
+
 class ContractSettings(TypedDict):
     """
     Configuration of contract calculation parameters for a given month.
@@ -43,8 +51,15 @@ class ContractSettings(TypedDict):
         salary_type (SalaryType): Indicates whether salary_base is gross or net.
         enabled (bool): Whether this month's contract should be included in calculations.
     """
-    rates: Rates  | None
-    contract_settings: EmploymentContractSettings | MandateContractSettings | SelfEmploymentSettings | WorkContractSettings | None
+
+    rates: Rates | None
+    contract_settings: (
+        EmploymentContractSettings
+        | MandateContractSettings
+        | SelfEmploymentSettings
+        | WorkContractSettings
+        | None
+    )
     salary_base: Decimal | None
     salary_type: SalaryType
     enabled: bool
@@ -72,12 +87,17 @@ class YearContractSummary(SalaryExporter):
         salary_difference (Salary | None): Difference between `summary` and `salary_compared_contract`.
         is_compared (bool): Indicates if `compare_to()` was executed.
     """
-    def __init__(self,
-                 default_rates:Rates,
-                 contract_settings: EmploymentContractSettings | MandateContractSettings | SelfEmploymentSettings | WorkContractSettings,
-                 default_salary_base: Decimal,
-                 default_salary_type: SalaryType= SalaryType.GROSS
-                 ) -> None:
+
+    def __init__(
+        self,
+        default_rates: Rates,
+        contract_settings: EmploymentContractSettings
+        | MandateContractSettings
+        | SelfEmploymentSettings
+        | WorkContractSettings,
+        default_salary_base: Decimal,
+        default_salary_type: SalaryType = SalaryType.GROSS,
+    ) -> None:
         """
         Initialize yearly contract summary with default configuration applied to all months.
 
@@ -91,10 +111,12 @@ class YearContractSummary(SalaryExporter):
         self.default_salary_type: SalaryType = default_salary_type
 
         self._monthly_contract_parameters: dict[Months, ContractSettings] = {}
-        self._monthly_contract_calculated_data: dict[Months,Salary] = {}
+        self._monthly_contract_calculated_data: dict[Months, Salary] = {}
 
-        self.summary: Salary = Salary(rates=default_rates,contract_settings=contract_settings)
-        self.is_calculated=False
+        self.summary: Salary = Salary(
+            rates=default_rates, contract_settings=contract_settings
+        )
+        self.is_calculated = False
 
         self._set_empty_months_options_to_default()
 
@@ -103,7 +125,7 @@ class YearContractSummary(SalaryExporter):
         self.is_compared: bool = False
 
     @classmethod
-    def from_contract(cls,contract: Salary) -> Self:
+    def from_contract(cls, contract: Salary) -> Self:
         """
         Construct a yearly summary from an already-calculated Salary object.
 
@@ -113,7 +135,12 @@ class YearContractSummary(SalaryExporter):
         Returns:
             YearContractSummary: New summary instance with defaults extracted from the contract.
         """
-        return cls(contract.rates,contract.contract_settings,contract.input_salary,contract.salary_type)
+        return cls(
+            contract.rates,
+            contract.contract_settings,
+            contract.input_salary,
+            contract.salary_type,
+        )
 
     def calculate(self) -> None:
         """
@@ -131,32 +158,48 @@ class YearContractSummary(SalaryExporter):
         Raises:
             NotImplementedError: If an unsupported contract type is encountered.
         """
-        social_security_base_sum: Decimal = self.summary.contract_settings.social_security_base_sum
+        social_security_base_sum: Decimal = (
+            self.summary.contract_settings.social_security_base_sum
+        )
         cost_fifty_sum: Decimal = self.summary.contract_settings.cost_fifty_sum
         tax_base_sum: Decimal = self.summary.contract_settings.tax_base_sum
 
         for month in Months:
             mco = self._monthly_contract_parameters[month]
-            if not mco["enabled"] or not mco["contract_settings"] or not mco["rates"] or not mco["salary_base"]:
-                self._monthly_contract_calculated_data[month] = Salary(self.summary.rates, self.summary.contract_settings)
+            if (
+                not mco["enabled"]
+                or not mco["contract_settings"]
+                or not mco["rates"]
+                or not mco["salary_base"]
+            ):
+                self._monthly_contract_calculated_data[month] = Salary(
+                    self.summary.rates, self.summary.contract_settings
+                )
                 continue
 
             mco["contract_settings"].social_security_base_sum = social_security_base_sum
             mco["contract_settings"].cost_fifty_sum = cost_fifty_sum
             mco["contract_settings"].tax_base_sum = tax_base_sum
 
-            contract: EmploymentContract | MandateContract | SelfEmployment | WorkContract | None = None
+            contract: (
+                EmploymentContract
+                | MandateContract
+                | SelfEmployment
+                | WorkContract
+                | None
+            ) = None
             if isinstance(mco["contract_settings"], EmploymentContractSettings):
-                contract = EmploymentContract(mco["rates"],mco["contract_settings"])
+                contract = EmploymentContract(mco["rates"], mco["contract_settings"])
             elif isinstance(mco["contract_settings"], MandateContractSettings):
-                contract = MandateContract(mco["rates"],mco["contract_settings"])
+                contract = MandateContract(mco["rates"], mco["contract_settings"])
             elif isinstance(mco["contract_settings"], SelfEmploymentSettings):
-                contract = SelfEmployment(mco["rates"],mco["contract_settings"])
+                contract = SelfEmployment(mco["rates"], mco["contract_settings"])
             elif isinstance(mco["contract_settings"], WorkContractSettings):
-                contract = WorkContract(mco["rates"],mco["contract_settings"])
-            else: raise NotImplementedError("Contract contract_settings not implemented")
+                contract = WorkContract(mco["rates"], mco["contract_settings"])
+            else:
+                raise NotImplementedError("Contract contract_settings not implemented")
 
-            contract.calculate(mco["salary_base"],mco["salary_type"])
+            contract.calculate(mco["salary_base"], mco["salary_type"])
             contract.name = month.name
             self._monthly_contract_calculated_data[month] = contract
 
@@ -164,17 +207,18 @@ class YearContractSummary(SalaryExporter):
             cost_fifty_sum = contract.cost_fifty_total
             tax_base_sum = contract.tax_base_total
 
-            self.summary +=contract
+            self.summary += contract
 
         self.is_calculated = True
 
-    def modify_month_contracts(self,
-                               months: list[Months],
-                               enabled: bool = True,
-                               rates:Rates | None = None,
-                               salary_base: Decimal | None = None,
-                               salary_type: SalaryType= SalaryType.GROSS
-                               ) -> None:
+    def modify_month_contracts(
+        self,
+        months: list[Months],
+        enabled: bool = True,
+        rates: Rates | None = None,
+        salary_base: Decimal | None = None,
+        salary_type: SalaryType = SalaryType.GROSS,
+    ) -> None:
         """
         Override monthly settings for one or more months.
 
@@ -186,12 +230,12 @@ class YearContractSummary(SalaryExporter):
             salary_type (SalaryType): Base salary interpretation (gross/net).
         """
         for month in months:
-            self._monthly_contract_parameters[month]={
+            self._monthly_contract_parameters[month] = {
                 "rates": rates or self.summary.rates,
-                "contract_settings":  self.summary.contract_settings,
+                "contract_settings": self.summary.contract_settings,
                 "salary_base": salary_base or self.default_salary_base,
                 "salary_type": salary_type or self.default_salary_type,
-                "enabled":enabled
+                "enabled": enabled,
             }
 
     def _set_empty_months_options_to_default(self) -> None:
@@ -199,14 +243,14 @@ class YearContractSummary(SalaryExporter):
         Initialize all months with default configuration values.
         """
         self.modify_month_contracts(
-                list(Months),
-                True,
-                self.summary.rates,
-                self.default_salary_base,
-                self.default_salary_type
-            )
+            list(Months),
+            True,
+            self.summary.rates,
+            self.default_salary_base,
+            self.default_salary_type,
+        )
 
-    def to_dict_salary(self) ->  dict[str, Salary]:
+    def to_dict_salary(self) -> dict[str, Salary]:
         """
         Convert monthly and summary salary results into a dictionary.
 
@@ -215,24 +259,32 @@ class YearContractSummary(SalaryExporter):
                 Keys include month names, 'SUMMARY', and optionally 'COMPARED'/'DIFFERENCE'.
         """
         output = {k.value: v for k, v in self._monthly_contract_calculated_data.items()}
-        output['SUMMARY'] =self.summary
-        if self.is_compared and self.salary_compared_contract is not None and self.salary_difference is not None:
-            output['COMPARED'] = self.salary_compared_contract
-            output['DIFFERENCE'] = self.salary_difference
+        output["SUMMARY"] = self.summary
+        if (
+            self.is_compared
+            and self.salary_compared_contract is not None
+            and self.salary_difference is not None
+        ):
+            output["COMPARED"] = self.salary_compared_contract
+            output["DIFFERENCE"] = self.salary_difference
         return output
 
     @override
-    def to_exporter_dict(self)-> dict[str,dict[str,str | Decimal | bool]]:
+    def to_exporter_dict(self) -> dict[str, dict[str, str | Decimal | bool]]:
         """
         Convert monthly and summary calculations into flat export format compatible with SalaryExporter.
 
         Returns:
             dict[str, dict]: Flattened structure suitable for tabular export.
         """
-        output = {k:vv for k, v in self.to_dict_salary().items() for vv in v.to_exporter_dict().values()}
+        output = {
+            k: vv
+            for k, v in self.to_dict_salary().items()
+            for vv in v.to_exporter_dict().values()
+        }
         return output
 
-    def compare_to(self, salary_compared_contract: Self | 'Salary') -> Self | 'Salary':
+    def compare_to(self, salary_compared_contract: Self | "Salary") -> Self | "Salary":
         """
         Compare this yearly summary to another contract or summary.
 
@@ -248,28 +300,32 @@ class YearContractSummary(SalaryExporter):
         if self.is_calculated:
             if isinstance(salary_compared_contract, Salary):
                 self.salary_compared_contract = salary_compared_contract
-            else: self.salary_compared_contract = salary_compared_contract.summary
+            else:
+                self.salary_compared_contract = salary_compared_contract.summary
             self.salary_difference = self.summary - self.salary_compared_contract
             self.is_compared = True
-        else: raise RuntimeError("Contract not calculated! Calculate first, before comparison!")
+        else:
+            raise RuntimeError(
+                "Contract not calculated! Calculate first, before comparison!"
+            )
         return self
 
     def __str__(self) -> str:
         """Return formatted string export using SalaryExporter.to_string()."""
         return self.to_string()
 
-    def __getitem__(self, item: str) ->  Salary:
+    def __getitem__(self, item: str) -> Salary:
         """
-         Access calculated monthly or summary salary by name.
+        Access calculated monthly or summary salary by name.
 
-         Example:
-             summary["MARCH"]
-             summary["SUMMARY"]
+        Example:
+            summary["MARCH"]
+            summary["SUMMARY"]
 
-         Args:
-             item (str): Month name or "SUMMARY"/"COMPARED"/"DIFFERENCE".
+        Args:
+            item (str): Month name or "SUMMARY"/"COMPARED"/"DIFFERENCE".
 
-         Returns:
-             Salary: Requested salary object.
-         """
+        Returns:
+            Salary: Requested salary object.
+        """
         return self.to_dict_salary()[item]
