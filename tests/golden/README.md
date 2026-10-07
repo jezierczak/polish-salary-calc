@@ -36,10 +36,10 @@ holds the values calculated from them, so a port can check its own derivation.
 
 - Decimals are strings. Use `BigDecimal`, never floating point, and compare
   numerically (`compareTo`), because `"1000.00"` and `"1000"` are equal.
-- Rounding must match Python: tax advance, tax base and costs are rounded
-  half-up to full zlotys; other amounts to 0.01 (see `Salary` pipeline).
-  `Decimal.quantize` without an explicit mode (used for the 0.01 amounts) is
-  *half-even* in Python, so set the rounding mode explicitly in the port.
+- Rounding: tax advance, tax base and costs are rounded half-up to full
+  zlotys; every other amount is rounded half-up to 0.01 (`ROUND_HALF_UP` /
+  `RoundingMode.HALF_UP`). Round at the same steps as the Python pipeline
+  (each field is rounded when it is calculated, not only at the end).
 - Enum values are given by name (`TaxType.LINE_TAX` -> `"LINE_TAX"`).
 - `NET` cases search for the gross salary that gives the requested net.
 

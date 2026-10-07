@@ -1,7 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 from typing import TypedDict, cast, override
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from enum import Enum
 import pandas as pd
 
@@ -223,7 +223,7 @@ class Salary[T: ContractSettings](SalaryExporter):
         Returns:
             Decimal: Total employer overhead (employer cost minus net salary).
         """
-        return (self.total_employer_cost - self.net_salary).quantize(Decimal("0.01"))
+        return (self.total_employer_cost - self.net_salary).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     @property
     def gross_ratio(self) -> Decimal:
@@ -235,9 +235,7 @@ class Salary[T: ContractSettings](SalaryExporter):
         """
         if self.total_employer_cost == 0:
             return Decimal("0.0")
-        return ((self.salary_gross / self.total_employer_cost) * 100).quantize(
-            Decimal("0.01")
-        )
+        return ((self.salary_gross / self.total_employer_cost) * 100).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     @property
     def net_ratio(self) -> Decimal:
@@ -249,9 +247,7 @@ class Salary[T: ContractSettings](SalaryExporter):
         """
         if self.total_employer_cost == 0:
             return Decimal("0.0")
-        return ((self.net_salary / self.total_employer_cost) * 100).quantize(
-            Decimal("0.01")
-        )
+        return ((self.net_salary / self.total_employer_cost) * 100).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     @property
     def total_markups_ratio(self) -> Decimal:
@@ -263,9 +259,7 @@ class Salary[T: ContractSettings](SalaryExporter):
         """
         if self.total_employer_cost == 0:
             return Decimal("0.0")
-        return ((self.total_markups / self.total_employer_cost) * 100).quantize(
-            Decimal("0.01")
-        )
+        return ((self.total_markups / self.total_employer_cost) * 100).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     def to_dict(self) -> SalaryDict:
         """

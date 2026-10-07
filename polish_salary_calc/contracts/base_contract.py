@@ -1,5 +1,5 @@
 from polish_salary_calc.contract_settings.contract_settings import ContractSettings
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from polish_salary_calc.salary.salary import Salary, SalaryType
 from polish_salary_calc.rates.rates import Rates
 from polish_salary_calc.salary.salary_utilities import SalaryUtilities
@@ -301,77 +301,53 @@ class BaseContract[T: ContractSettings](Salary, ABC):
             salary_base, salary_gross, cost, tax_advance_payment, net_salary,
             total_employer_cost, etc.
         """
-        self.salary_base = self.calculate_salary_base().quantize(Decimal("0.01"))
-        self.salary_sick_pay = self.calculate_sick_pay().quantize(Decimal("0.01"))
-        self.salary_gross = self.calculate_salary_gross().quantize(Decimal("0.01"))
-        self.social_security_base = self.calculate_social_security_base().quantize(
-            Decimal("0.01")
-        )
+        self.salary_base = self.calculate_salary_base().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.salary_sick_pay = self.calculate_sick_pay().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.salary_gross = self.calculate_salary_gross().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.social_security_base = self.calculate_social_security_base().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         self.social_security_base_total = (
-            self.calculate_social_security_base_total().quantize(Decimal("0.01"))
+            self.calculate_social_security_base_total().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         )
-        self.pension_insurance = self.calculate_pension_insurance().quantize(
-            Decimal("0.01")
-        )
-        self.disability_insurance = self.calculate_disability_insurance().quantize(
-            Decimal("0.01")
-        )
-        self.sickness_insurance = self.calculate_sickness_insurance().quantize(
-            Decimal("0.01")
-        )
-        self.social_insurance_sum = self.calculate_social_insurance_sum().quantize(
-            Decimal("0.01")
-        )
-        self.health_insurance_base = self.calculate_health_insurance_base().quantize(
-            Decimal("0.01")
-        )
+        self.pension_insurance = self.calculate_pension_insurance().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.disability_insurance = self.calculate_disability_insurance().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.sickness_insurance = self.calculate_sickness_insurance().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.social_insurance_sum = self.calculate_social_insurance_sum().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.health_insurance_base = self.calculate_health_insurance_base().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         self.regular_cost = SalaryUtilities.round_to_full_zloty(
             self._calculate_regular_cost()
         )
-        self.author_rights_cost = self._calculate_author_rights_cost().quantize(
-            Decimal("0.01")
-        )
+        self.author_rights_cost = self._calculate_author_rights_cost().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         self.cost = SalaryUtilities.round_to_full_zloty(self.calculate_cost())
-        self.cost_fifty_total = self.calculate_cost_fifty_total().quantize(
-            Decimal("0.01")
-        )
+        self.cost_fifty_total = self.calculate_cost_fifty_total().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         self.tax_base = SalaryUtilities.round_to_full_zloty(self.calculate_tax_base())
-        self.tax_base_total = self.calculate_tax_base_total().quantize(Decimal("0.01"))
-        self.ppk_tax = self.calculate_ppk_tax().quantize(Decimal("0.01"))
+        self.tax_base_total = self.calculate_tax_base_total().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.ppk_tax = self.calculate_ppk_tax().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         self.tax = self._add_ppk_tax_and_check_if_is_positive(
             self.calculate_tax()
-        ).quantize(Decimal("0.01"))
-        self.health_insurance = self.calculate_health_insurance().quantize(
-            Decimal("0.01")
-        )
-        self.salary_deductions = self.calculate_salary_deductions().quantize(
-            Decimal("0.01")
-        )
+        ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.health_insurance = self.calculate_health_insurance().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.salary_deductions = self.calculate_salary_deductions().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         self.tax_advance_payment = SalaryUtilities.round_to_full_zloty(
             self.calculate_tax_advance_payment()
         )
         self.employee_ppk_contribution = (
-            self.calculate_employee_ppk_contribution().quantize(Decimal("0.01"))
+            self.calculate_employee_ppk_contribution().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         )
         self.employer_pension_contribution = (
-            self.calculate_pension_contribution().quantize(Decimal("0.01"))
+            self.calculate_pension_contribution().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         )
         self.employer_disability_contribution = (
-            self.calculate_disability_contribution().quantize(Decimal("0.01"))
+            self.calculate_disability_contribution().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         )
-        self.accident_insurance = self.calculate_accident_insurance().quantize(
-            Decimal("0.01")
-        )
-        self.fp = self.calculate_fp().quantize(Decimal("0.01"))
-        self.fgsp = self.calculate_fgsp().quantize(Decimal("0.01"))
+        self.accident_insurance = self.calculate_accident_insurance().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.fp = self.calculate_fp().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.fgsp = self.calculate_fgsp().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         self.employer_ppk_contribution = (
-            self.calculate_employer_ppk_contribution().quantize(Decimal("0.01"))
+            self.calculate_employer_ppk_contribution().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         )
 
-        self.net_salary = self.calculate_net_salary().quantize(Decimal("0.01"))
-        self.total_employer_cost = self.calculate_total_employer_cost().quantize(
-            Decimal("0.01")
-        )
+        self.net_salary = self.calculate_net_salary().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.total_employer_cost = self.calculate_total_employer_cost().quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     def _calculate_net(self) -> None:
         """
@@ -380,9 +356,7 @@ class BaseContract[T: ContractSettings](Salary, ABC):
         """
         wished_netto = self.input_salary  # salary_base= brutto_estimate
 
-        while self.net_salary.quantize(Decimal("0.01")) != wished_netto.quantize(
-            Decimal("0.01")
-        ):
+        while self.net_salary.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP) != wished_netto.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP):
             self.input_salary += wished_netto - self.net_salary
             self.calculate_gross()
         self.input_salary = wished_netto
