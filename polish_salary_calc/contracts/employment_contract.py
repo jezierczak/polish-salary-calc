@@ -34,11 +34,6 @@ class EmploymentContract(BaseContract[EmploymentContractSettings]):
         super().__init__(rates, contract_settings)
 
     @override
-    def calculate_salary_base(self) -> Decimal:
-        """Return the contractual gross amount before deductions."""
-        return super().calculate_salary_base()
-
-    @override
     def calculate_sick_pay(self) -> Decimal:
         """
         Return the sick pay amount declared in contract settings.
@@ -47,36 +42,6 @@ class EmploymentContract(BaseContract[EmploymentContractSettings]):
             Decimal: Sick pay value.
         """
         return self.contract_settings.sick_pay
-
-    @override
-    def calculate_salary_gross(self) -> Decimal:
-        """Return the gross salary after accounting for sick pay adjustments."""
-        return super().calculate_salary_gross()
-
-    @override
-    def calculate_social_security_base(self) -> Decimal:
-        """Return the base used for social insurance contributions."""
-        return super().calculate_social_security_base()
-
-    @override
-    def calculate_pension_insurance(self) -> Decimal:
-        """Return the employee pension insurance contribution."""
-        return super().calculate_pension_insurance()
-
-    @override
-    def calculate_disability_insurance(self) -> Decimal:
-        """Return the disability insurance contribution."""
-        return super().calculate_disability_insurance()
-
-    @override
-    def calculate_sickness_insurance(self) -> Decimal:
-        """Return the sickness insurance contribution."""
-        return super().calculate_sickness_insurance()
-
-    @override
-    def calculate_cost(self) -> Decimal:
-        """Return the tax-deductible cost value (regular or 50% authors' costs if enabled)."""
-        return super().calculate_cost()
 
     @override
     def _calculate_regular_cost(self) -> Decimal:
@@ -107,21 +72,6 @@ class EmploymentContract(BaseContract[EmploymentContractSettings]):
             self.contract_settings.cost_fifty_sum,
             self.rates.cost_threshold,
         )
-
-    @override
-    def calculate_health_insurance_base(self) -> Decimal:
-        """Return the base for calculating health insurance contributions."""
-        return super().calculate_health_insurance_base()
-
-    @override
-    def calculate_health_insurance(self) -> Decimal:
-        """Return the health insurance contribution."""
-        return super().calculate_health_insurance()
-
-    @override
-    def calculate_tax_base(self) -> Decimal:
-        """Return the tax base before applying the tax rate."""
-        return super().calculate_tax_base()
 
     @override
     def calculate_tax(self) -> Decimal:
@@ -161,36 +111,6 @@ class EmploymentContract(BaseContract[EmploymentContractSettings]):
         if self.contract_settings.under_26:
             return Decimal("0.0")
         return super().calculate_ppk_tax()
-
-    @override
-    def calculate_salary_deductions(self) -> Decimal:
-        """Return total salary deductions (other than insurance/tax)."""
-        return super().calculate_salary_deductions()
-
-    @override
-    def calculate_employee_ppk_contribution(self) -> Decimal:
-        """Return employee PPK contribution."""
-        return super().calculate_employee_ppk_contribution()
-
-    @override
-    def calculate_net_salary(self) -> Decimal:
-        """Return the net salary (take-home pay)."""
-        return super().calculate_net_salary()
-
-    @override
-    def calculate_pension_contribution(self) -> Decimal:
-        """Return employer pension contribution."""
-        return super().calculate_pension_contribution()
-
-    @override
-    def calculate_disability_contribution(self) -> Decimal:
-        """Return employer disability insurance contribution."""
-        return super().calculate_disability_contribution()
-
-    @override
-    def calculate_accident_insurance(self) -> Decimal:
-        """Return employer accident insurance contribution."""
-        return super().calculate_accident_insurance()
 
     @override
     def calculate_fp(self) -> Decimal:

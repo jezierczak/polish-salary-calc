@@ -344,7 +344,6 @@ class BaseContract[T: ContractSettings](Salary, ABC):
         self.health_insurance = self.calculate_health_insurance().quantize(
             Decimal("0.01")
         )
-        # self.ub_zdr_odl = self._calculate_ub_zdr_odl()
         self.salary_deductions = self.calculate_salary_deductions().quantize(
             Decimal("0.01")
         )

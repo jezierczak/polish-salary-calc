@@ -1,4 +1,4 @@
-from typing import TypedDict, Self, Unpack
+from typing import TypedDict, Self, cast
 from dataclasses import dataclass
 from decimal import Decimal
 
@@ -80,7 +80,7 @@ class EmploymentContractSettings(ContractSettings):
     # employer_ppk: Decimal = Decimal('0.0')
     # accident_insurance_rate: Decimal | None = None
 
-    def to_dict(self) -> Unpack[EmploymentContractDict]:
+    def to_dict(self) -> EmploymentContractDict:
         """
         Convert settings to a serializable dictionary representation.
 
@@ -88,7 +88,7 @@ class EmploymentContractSettings(ContractSettings):
             EmploymentContractDict: A copy of the instance state suitable for
             storage, logging, or transmitting between salary calculation modules.
         """
-        return self.__dict__
+        return cast(EmploymentContractDict, dict(self.__dict__))
 
     @classmethod
     def from_dict(cls, data: EmploymentContractDict) -> Self:

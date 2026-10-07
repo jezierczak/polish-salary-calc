@@ -38,15 +38,6 @@ class MandateContract(BaseContract[MandateContractSettings]):
         super().__init__(rates, contract_settings)
 
     @override
-    def calculate_salary_base(self) -> Decimal:
-        """Returns the salary base value.
-
-        Returns:
-            Decimal: The input salary base value.
-        """
-        return super().calculate_salary_base()
-
-    @override
     def calculate_sick_pay(self) -> Decimal:
         """Mandate contracts do not include sick pay by default.
 
@@ -54,10 +45,6 @@ class MandateContract(BaseContract[MandateContractSettings]):
             Decimal: Always returns 0.0.
         """
         return Decimal("0.0")
-
-    @override
-    def calculate_salary_gross(self) -> Decimal:
-        return super().calculate_salary_gross()
 
     @override
     def calculate_social_security_base(self) -> Decimal:
@@ -198,14 +185,6 @@ class MandateContract(BaseContract[MandateContractSettings]):
         return super().calculate_health_insurance_base()
 
     @override
-    def calculate_health_insurance(self) -> Decimal:
-        return super().calculate_health_insurance()
-
-    @override
-    def calculate_tax_base(self) -> Decimal:
-        return super().calculate_tax_base()
-
-    @override
     def calculate_tax(self) -> Decimal:
         """Calculates income tax for the mandate contract.
 
@@ -244,10 +223,6 @@ class MandateContract(BaseContract[MandateContractSettings]):
         return super().calculate_ppk_tax()
 
     @override
-    def calculate_salary_deductions(self) -> Decimal:
-        return super().calculate_salary_deductions()
-
-    @override
     def calculate_employee_ppk_contribution(self) -> Decimal:
         if self.contract_settings.mandate_contract_type == (
             MandateContractType.UNDER_26_AND_STUDENT
@@ -255,22 +230,6 @@ class MandateContract(BaseContract[MandateContractSettings]):
         ):
             return Decimal("0.0")
         return super().calculate_employee_ppk_contribution()
-
-    @override
-    def calculate_net_salary(self) -> Decimal:
-        return super().calculate_net_salary()
-
-    @override
-    def calculate_pension_contribution(self) -> Decimal:
-        return super().calculate_pension_contribution()
-
-    @override
-    def calculate_disability_contribution(self) -> Decimal:
-        return super().calculate_disability_contribution()
-
-    @override
-    def calculate_accident_insurance(self) -> Decimal:
-        return super().calculate_accident_insurance()
 
     @override
     def calculate_fp(self) -> Decimal:
@@ -308,7 +267,3 @@ class MandateContract(BaseContract[MandateContractSettings]):
         ):
             return Decimal("0.0")
         return super().calculate_employer_ppk_contribution()
-
-    @override
-    def calculate_total_employer_cost(self) -> Decimal:
-        return super().calculate_total_employer_cost()

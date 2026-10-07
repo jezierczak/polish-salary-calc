@@ -83,7 +83,6 @@ class SalaryUtilities:
             Decimal: Deductible cost amount for this period, capped at the annual limit.
         """
 
-        # if cost_fifty_ratio>0:
         if base > income_tax_deduction:
             cost_fifty = (base - income_tax_deduction) * cost_ratio
         else:
@@ -95,8 +94,6 @@ class SalaryUtilities:
             return cost_threshold - (total_cost_fifty_sum - cost_fifty)
         else:
             return Decimal("0.0")
-
-    # else: return Decimal('0.0')
 
     @staticmethod
     def calculate_tax(

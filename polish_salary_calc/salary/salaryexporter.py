@@ -167,7 +167,7 @@ class SalaryExporter(ABC):
         """
         first_key = list(contract_summary_dict.keys())[0]
         if columns is None:
-            columns = list(contract_summary_dict.get(first_key).keys())
+            columns = list(contract_summary_dict[first_key].keys())
         data = list(contract_summary_dict.values())
         index = list(contract_summary_dict.keys())
 
@@ -191,12 +191,12 @@ class SalaryExporter(ABC):
         out = [first_key]
         max_len = 0
         if input_dict.get(first_key) is not None:
-            for key, value in input_dict.get(first_key).items():
+            for key, value in input_dict[first_key].items():
                 if isinstance(value, tuple):
                     value = "  ".join(str(v) for v in value)
                 max_len = max(max_len, len(key) + len(str(value)))
 
-            for key, value in input_dict.get(first_key).items():
+            for key, value in input_dict[first_key].items():
                 if isinstance(value, tuple):
                     value = " ".join(str(v) for v in value)
                     value = "(" + value + ")"

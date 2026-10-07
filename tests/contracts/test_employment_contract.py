@@ -51,7 +51,6 @@ def employment_contract_mock_6000_gross() -> MagicMock:
     employment_contract.tax_base_total = Decimal("4877.40")
     employment_contract.tax = Decimal("585.29")  # podatek
     employment_contract.health_insurance = Decimal("465.97")
-    # self.ub_zdr_odl: Decimal= Decimal('0.0')
     employment_contract.ppk_tax = Decimal("0.00")
     employment_contract.tax_advance_payment = Decimal("585")  # zaliczka podatku
     employment_contract.salary_deductions = Decimal("0.00")  # potrącenia wypłaty

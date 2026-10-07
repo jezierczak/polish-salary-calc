@@ -1,5 +1,5 @@
 from polish_salary_calc.contract_settings.contract_settings import ContractSettings
-from typing import TypedDict, Self, Unpack
+from typing import TypedDict, Self, cast
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum, IntEnum
@@ -145,14 +145,14 @@ class SelfEmploymentSettings(ContractSettings):
     # is_a_lump_sum: bool = False
     costs: Decimal = Decimal("0.0")
 
-    def to_dict(self) -> Unpack[SelfEmploymentOptionsDict]:
+    def to_dict(self) -> SelfEmploymentOptionsDict:
         """
         Return configuration as a TypedDict representation.
 
         Returns:
             dict: A dictionary mapping field names to their values.
         """
-        return self.__dict__
+        return cast(SelfEmploymentOptionsDict, dict(self.__dict__))
 
     @classmethod
     def from_dict(cls, data: SelfEmploymentOptionsDict) -> Self:

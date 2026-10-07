@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from typing import TypedDict, override, Unpack
+from typing import TypedDict, cast, override
 from decimal import Decimal
 from enum import Enum
 import pandas as pd
@@ -8,6 +8,9 @@ import pandas as pd
 from polish_salary_calc.salary.salaryexporter import SalaryExporter
 from polish_salary_calc.contract_settings.contract_settings import ContractSettings
 from polish_salary_calc.rates.rates import Rates
+
+
+ExportRow = dict[str, str | Decimal | bool]
 
 
 class SalaryType(Enum):
@@ -32,14 +35,14 @@ class SalaryDict(TypedDict):
 
     Attributes:
         name (str): Human-readable identifier for the salary calculation.
-        created_datetime (datetime): Timestamp indicating when the salary was calculated.
+        contract_type (str): Name of the contract type.
+        created_datetime (str): Timestamp (YYYY-MM-DD HH:MM:SS) of the calculation.
 
         salary_base (Decimal): Base salary before additions or sickness adjustments.
         salary_sick_pay (Decimal): Amount of sickness pay included in the salary.
         salary_gross (Decimal): Gross salary after combining base and sickness pay.
 
         social_security_base (Decimal): Base used for calculating social insurance contributions.
-        social_security_base_total (Decimal): Total social insurance contribution base.
 
         pension_insurance (Decimal): Employee pension insurance contribution.
         disability_insurance (Decimal): Employee disability insurance contribution.
@@ -47,14 +50,12 @@ class SalaryDict(TypedDict):
         social_insurance_sum (Decimal): Sum of employee social insurance contributions.
 
         cost (Decimal): Standard tax deductible cost.
-        cost_fifty_total (Decimal): Total deductible cost under 50% author’s rights cost.
         regular_cost (Decimal): Standard deductible cost amount.
         author_rights_cost (Decimal): Deductible cost applied to copyrighted work compensation.
 
         health_insurance_base (Decimal): Base used to compute health insurance contribution.
 
         tax_base (Decimal): Income tax base after allowable deductions.
-        tax_base_total (Decimal): Total taxable base including adjustments.
         tax (Decimal): Calculated income tax amount.
         health_insurance (Decimal): Health insurance contribution.
         ppk_tax (Decimal): Additional tax from PPK contributions when applicable.
@@ -76,29 +77,26 @@ class SalaryDict(TypedDict):
         total_employer_cost (Decimal): Total employer cost including gross salary and contributions.
         total_markups (Decimal): Total employer overhead relative to the net salary.
 
-        brutto_ratio (Decimal): Percentage share of gross salary in employer's total cost.
         net_ratio (Decimal): Percentage share of net salary in employer's total cost.
         total_markups_ratio (Decimal): Percentage share of employer overhead in total cost.
     """
 
     name: str
-    created_datetime: datetime
+    contract_type: str
+    created_datetime: str
     salary_base: Decimal
     salary_sick_pay: Decimal
     salary_gross: Decimal
     social_security_base: Decimal
-    social_security_base_total: Decimal
     pension_insurance: Decimal
     disability_insurance: Decimal
     sickness_insurance: Decimal
     social_insurance_sum: Decimal
     cost: Decimal
-    cost_fifty_total: Decimal
     regular_cost: Decimal
     author_rights_cost: Decimal
     health_insurance_base: Decimal
     tax_base: Decimal
-    tax_base_total: Decimal
     tax: Decimal
     health_insurance: Decimal
     ppk_tax: Decimal
@@ -114,7 +112,6 @@ class SalaryDict(TypedDict):
     employer_ppk_contribution: Decimal
     total_employer_cost: Decimal
     total_markups: Decimal
-    brutto_ratio: Decimal
     net_ratio: Decimal
     total_markups_ratio: Decimal
 
@@ -180,7 +177,6 @@ class Salary[T: ContractSettings](SalaryExporter):
         self.tax_base_total = Decimal("0.0")
         self.tax: Decimal = Decimal("0.0")  # podatek
         self.health_insurance: Decimal = Decimal("0.0")
-        # self.ub_zdr_odl: Decimal= Decimal('0.0')
         self.ppk_tax: Decimal = Decimal("0.0")
         self.tax_advance_payment: Decimal = Decimal("0.0")  # zaliczka podatku
         self.salary_deductions: Decimal = Decimal("0.0")  # potrącenia wypłaty
@@ -271,7 +267,7 @@ class Salary[T: ContractSettings](SalaryExporter):
             Decimal("0.01")
         )
 
-    def to_dict(self) -> Unpack[SalaryDict]:
+    def to_dict(self) -> SalaryDict:
         """
         Converts salary result into a flat dictionary structure.
 
@@ -333,10 +329,10 @@ class Salary[T: ContractSettings](SalaryExporter):
         """
         if row_name is None:
             row_name = self.name
-        output: dict[str, dict[str, str | Decimal | bool]] = {row_name: self.to_dict()}
+        output: dict[str, dict[str, str | Decimal | bool]] = {row_name: cast(ExportRow, self.to_dict())}
         # if self.is_compared and self.salary_compared_contract is not None and self.salary_difference is not None:
-        #     output["COMPARED"] = self.salary_compared_contract.to_dict()
-        #     output["DIFFERANCE"] = self.salary_difference.to_dict()
+        #     output["COMPARED"] = cast(ExportRow, self.salary_compared_contract.to_dict())
+        #     output["DIFFERANCE"] = cast(ExportRow, self.salary_difference.to_dict())
         return output
 
     def to_compared_dict(
@@ -361,14 +357,14 @@ class Salary[T: ContractSettings](SalaryExporter):
         """
         if row_name is None:
             row_name = self.name
-        output: dict[str, dict[str, str | Decimal | bool]] = {row_name: self.to_dict()}
+        output: dict[str, dict[str, str | Decimal | bool]] = {row_name: cast(ExportRow, self.to_dict())}
         if (
             self.is_compared
             and self.salary_compared_contract is not None
             and self.salary_difference is not None
         ):
-            output["COMPARED"] = self.salary_compared_contract.to_dict()
-            output["DIFFERANCE"] = self.salary_difference.to_dict()
+            output["COMPARED"] = cast(ExportRow, self.salary_compared_contract.to_dict())
+            output["DIFFERANCE"] = cast(ExportRow, self.salary_difference.to_dict())
         return output
 
     def to_compared_string(self) -> str:

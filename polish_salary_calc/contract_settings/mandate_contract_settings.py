@@ -1,5 +1,5 @@
 from polish_salary_calc.contract_settings.contract_settings import ContractSettings
-from typing import TypedDict, Self, Unpack
+from typing import TypedDict, Self, cast
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
@@ -87,14 +87,14 @@ class MandateContractSettings(ContractSettings):
     # employer_ppk: Decimal = Decimal('0.0')
     # accident_insurance_rate: Decimal | None = None
 
-    def to_dict(self) -> Unpack[MandateContractOptionsDict]:
+    def to_dict(self) -> MandateContractOptionsDict:
         """
         Return contract settings as a strongly typed dictionary.
 
         Returns:
             dict: Dictionary representation of configuration settings.
         """
-        return self.__dict__
+        return cast(MandateContractOptionsDict, dict(self.__dict__))
 
     @classmethod
     def from_dict(cls, data: MandateContractOptionsDict) -> Self:

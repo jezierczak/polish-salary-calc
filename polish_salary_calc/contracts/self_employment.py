@@ -38,15 +38,6 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
         super().__init__(rates, contract_settings)
 
     @override
-    def calculate_salary_base(self) -> Decimal:
-        """Returns the declared revenue (base) for self-employment.
-
-        Returns:
-            Decimal: The input salary base.
-        """
-        return super().calculate_salary_base()
-
-    @override
     def calculate_sick_pay(self) -> Decimal:
         """Self-employed individuals do not have paid sick leave by default.
 
@@ -182,10 +173,6 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
         )
 
     @override
-    def calculate_cost(self) -> Decimal:
-        return super().calculate_cost()
-
-    @override
     def _calculate_regular_cost(self) -> Decimal:
         """Returns fixed business costs as declared by the user.
 
@@ -303,10 +290,6 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
         return Decimal("0.0")
 
     @override
-    def calculate_salary_deductions(self) -> Decimal:
-        return super().calculate_salary_deductions()
-
-    @override
     def calculate_employee_ppk_contribution(self) -> Decimal:
         return Decimal("0.0")
 
@@ -326,10 +309,6 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
     @override
     def calculate_disability_contribution(self) -> Decimal:
         return Decimal("0.0")
-
-    @override
-    def calculate_accident_insurance(self) -> Decimal:
-        return super().calculate_accident_insurance()
 
     @override
     def calculate_fp(self) -> Decimal:

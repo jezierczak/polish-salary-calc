@@ -2,6 +2,7 @@ import warnings
 from dataclasses import dataclass
 from decimal import Decimal
 from abc import ABC, abstractmethod
+from collections.abc import Mapping
 from typing import override
 
 from polish_salary_calc.salary.salaryexporter import SalaryExporter, SalaryExporterDict
@@ -82,10 +83,10 @@ class ContractSettings(SalaryExporter, ABC):
             SalaryExporterDict: A mapping where the key is the class name and the
             value is the internal attribute dictionary.
         """
-        return {self.__class__.__name__: self.__dict__}
+        return {self.__class__.__name__: dict(self.__dict__)}
 
     @abstractmethod
-    def to_dict(self) -> dict[str, str | Decimal | bool]:
+    def to_dict(self) -> Mapping[str, object]:
         """
         Convert configuration to a simple dictionary representation that can be
         serialized or embedded inside salary summary objects.
@@ -94,7 +95,7 @@ class ContractSettings(SalaryExporter, ABC):
         that only relevant fields are exposed and formatted correctly.
 
         Returns:
-            dict[str, str | Decimal | bool]: Serialisable contract settings data.
+            Mapping[str, object]: Serialisable contract settings data.
         """
         pass
 

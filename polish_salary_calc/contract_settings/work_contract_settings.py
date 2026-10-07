@@ -1,5 +1,5 @@
 from polish_salary_calc.contract_settings.contract_settings import ContractSettings
-from typing import TypedDict, Self, Unpack
+from typing import TypedDict, Self, cast
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
@@ -51,13 +51,13 @@ class WorkContractSettings(ContractSettings):
     is_fifty: bool = False
     is_a_lump_sum: bool = False
 
-    def to_dict(self) -> Unpack[WorkContractOptionsDict]:
+    def to_dict(self) -> WorkContractOptionsDict:
         """Return the settings as a dictionary.
 
         Returns:
             dict: Dictionary representation that matches `WorkContractOptionsDict`.
         """
-        return self.__dict__
+        return cast(WorkContractOptionsDict, dict(self.__dict__))
 
     @classmethod
     def from_dict(cls, data: WorkContractOptionsDict) -> Self:
