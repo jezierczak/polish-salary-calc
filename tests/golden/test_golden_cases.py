@@ -6,9 +6,11 @@ import pytest
 from polish_salary_calc.rates.rates import Rates
 from tests.golden.generate import (
     CASES_PATH,
+    CONTRACTS,
     calculate_case,
     rates_from_dict,
     rates_to_dict,
+    settings_from_dict,
 )
 
 DOCUMENT = json.loads(CASES_PATH.read_text(encoding="utf-8"))
@@ -45,3 +47,14 @@ def test_golden_rates_derived_values(year: str) -> None:
 
 def test_every_case_references_known_rates() -> None:
     assert {c["rates"] for c in CASES} <= set(RATES)
+
+
+VALIDATION = DOCUMENT["settings_validation"]
+
+
+@pytest.mark.parametrize("case", VALIDATION, ids=[c["id"] for c in VALIDATION])
+def test_golden_settings_validation(case: dict) -> None:
+    settings_cls = CONTRACTS[case["contract"]][0]
+    with pytest.raises(ValueError) as error:
+        settings_from_dict(settings_cls, case["settings"])
+    assert str(error.value) == case["expected_error"]["message"]

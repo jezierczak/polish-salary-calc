@@ -13,6 +13,7 @@ Verify: `pytest tests/golden`.
 ```
 { "format_version": 1,
   "rates": { "2025": {...}, "2026": {...} },   // yearly inputs + derived values
+  "settings_validation": [ {...}, ... ],       // settings that must be rejected on creation
   "cases": [ {...}, ... ] }                    // one case per line
 ```
 
@@ -27,6 +28,10 @@ A case:
 | `salary`, `salary_type` | input amount and `GROSS` / `NET` |
 | `expected` | all result fields (same names as `Salary.to_dict()` plus `social_security_base_total`, `cost_fifty_total`, `tax_base_total`) |
 | `expected_error` | instead of `expected`: the calculation must fail with this validation error (`type`, `message`) |
+
+`settings_validation` entries have `contract`, `settings` and `expected_error`: creating
+the settings object must fail with exactly that message (PPK limits), before any
+calculation happens.
 
 Rates carry the three yearly inputs (`minimum_wage`, `forecast_average_wage`,
 `average_wage_q4`); all other rates are the defaults of `Rates`. `derived`

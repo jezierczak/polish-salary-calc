@@ -316,6 +316,11 @@ def _self_employment_variants() -> list[Variant]:
             },
         ),
         _v("ppk_ignored_values", **base, employee_ppk=D("0.02"), employer_ppk=D("0.015")),
+        _v(
+            "lump_rate_not_allowed",
+            **{**base, "tax_type": TaxType.A_LUMP_SUM},
+            tax_lump_rate=D("0.13"),
+        ),
     ]
     return variants
 
@@ -382,6 +387,39 @@ def generate_cases() -> list[dict[str, Any]]:
     return cases
 
 
+INVALID_PPK = (
+    ("employee_ppk", D("0.004")),
+    ("employee_ppk", D("0.041")),
+    ("employer_ppk", D("0.014")),
+    ("employer_ppk", D("0.041")),
+)
+
+
+def generate_settings_validation() -> list[dict[str, Any]]:
+    """Settings that must be rejected when they are created (before any calculation)."""
+    cases: list[dict[str, Any]] = []
+    for contract, (settings_cls, _) in CONTRACTS.items():
+        for field, value in INVALID_PPK:
+            settings = settings_to_dict(settings_cls())
+            settings[field] = str(value)
+            case: dict[str, Any] = {
+                "id": f"{contract}/{field}-{value}",
+                "contract": contract,
+                "settings": settings,
+            }
+            try:
+                settings_from_dict(settings_cls, settings)
+            except ValueError as exc:
+                case["expected_error"] = {
+                    "type": type(exc).__name__,
+                    "message": str(exc),
+                }
+            else:  # pragma: no cover - the grid above must contain invalid values only
+                raise AssertionError(f"{case['id']} was accepted")
+            cases.append(case)
+    return cases
+
+
 def _dump(document: dict[str, Any]) -> str:
     """Compact JSON with one case per line, so git diffs stay readable."""
 
@@ -407,6 +445,7 @@ def main() -> None:
             "`expected` (results) or `expected_error` (validation must fail)."
         ),
         "rates": rates_table_for_years(),
+        "settings_validation": generate_settings_validation(),
         "cases": cases,
     }
     CASES_PATH.write_text(_dump(document), encoding="utf-8")
