@@ -1,5 +1,5 @@
                  +----------------------+
-                 |  ContractSettngs     |  <<abstract dataclass>>
+                 |  ContractSettings     |  <<abstract dataclass>>
                  +----------------------+
                  | - name: str | None   |
                  | - current_month_gross_sum: Decimal |

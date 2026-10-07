@@ -2,7 +2,7 @@ from typing import TypedDict, Self, Unpack
 from dataclasses import dataclass
 from decimal import Decimal
 
-from polish_salary_calc.contract_settings.contract_settings import ContractSettngs
+from polish_salary_calc.contract_settings.contract_settings import ContractSettings
 
 
 class EmploymentContractDict(TypedDict):
@@ -47,7 +47,7 @@ class EmploymentContractDict(TypedDict):
 
 
 @dataclass
-class EmploymentContractSettings(ContractSettngs):
+class EmploymentContractSettings(ContractSettings):
     """
     Configuration state for Employment Contract (Umowa o pracę) calculations.
     This class stores taxpayer attributes that modify payroll rules as well as
@@ -55,7 +55,7 @@ class EmploymentContractSettings(ContractSettngs):
     social security thresholds.
 
     Extends:
-        ContractSettngs — provides shared accumulators and export utilities.
+        ContractSettings — provides shared accumulators and export utilities.
 
     Key parameters:
         increased_costs: Whether to apply standard employee cost deduction.

@@ -6,7 +6,7 @@ from enum import Enum
 import pandas as pd
 
 from polish_salary_calc.salary.salaryexporter import SalaryExporter
-from polish_salary_calc.contract_settings.contract_settings import ContractSettngs
+from polish_salary_calc.contract_settings.contract_settings import ContractSettings
 from polish_salary_calc.rates.rates import Rates
 
 
@@ -119,7 +119,7 @@ class SalaryDict(TypedDict):
     total_markups_ratio: Decimal
 
 
-class Salary[T: ContractSettngs](SalaryExporter):
+class Salary[T: ContractSettings](SalaryExporter):
     """
     Represents a detailed salary calculation result for a given contract configuration and tax rates.
 
@@ -138,7 +138,7 @@ class Salary[T: ContractSettngs](SalaryExporter):
 
     Attributes:
         rates (Rates): Set of tax and contribution rates used in calculations.
-        contract_settings (ContractSettngs): Contract configuration influencing cost structure.
+        contract_settings (ContractSettings): Contract configuration influencing cost structure.
         name (str): Human-readable identifier for calculation result.
         is_calculated (bool): Indicates whether salary calculation has been completed.
         is_compared (bool): Indicates whether this salary has been compared to another one.

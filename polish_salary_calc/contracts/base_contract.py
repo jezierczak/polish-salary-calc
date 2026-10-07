@@ -1,4 +1,4 @@
-from polish_salary_calc.contract_settings.contract_settings import ContractSettngs
+from polish_salary_calc.contract_settings.contract_settings import ContractSettings
 from decimal import Decimal, ROUND_UP
 from polish_salary_calc.salary.salary import Salary, SalaryType
 from polish_salary_calc.rates.rates import Rates
@@ -6,7 +6,7 @@ from polish_salary_calc.salary.salary_utilities import SalaryUtilities
 from abc import ABC, abstractmethod
 
 
-class BaseContract[T: ContractSettngs](Salary, ABC):
+class BaseContract[T: ContractSettings](Salary, ABC):
     """
     Abstract base class for salary computation under configurable contract rules.
 
@@ -14,7 +14,7 @@ class BaseContract[T: ContractSettngs](Salary, ABC):
     types (e.g., employment contract, mandate contract, B2B). It relies on two primary
     inputs:
       * `Rates` - containing percentage rates and government limits (ZUS, FP, FGŚP, PPK, etc.)
-      * `ContractSettngs` - containing individual contract-specific cumulative data
+      * `ContractSettings` - containing individual contract-specific cumulative data
         (e.g., current year social base sum, tax base sum, PPK selections, 50% costs usage, etc.)
 
     Subclasses must implement:
@@ -25,7 +25,7 @@ class BaseContract[T: ContractSettngs](Salary, ABC):
     Attributes:
         rates (Rates):
             Active rate configuration (tax rates, insurance rates, legal caps).
-        contract_settings (ContractSettngs):
+        contract_settings (ContractSettings):
             Contract-specific options and cumulative salary data.
 
     Inherited Attributes (from Salary, calculated dynamically):
@@ -76,7 +76,7 @@ class BaseContract[T: ContractSettngs](Salary, ABC):
         """Return the active rate configuration."""
         return self.rates
 
-    def get_settings(self) -> ContractSettngs:
+    def get_settings(self) -> ContractSettings:
         """Return contract settings (options and cumulative sums)."""
         return self.contract_settings
 

@@ -1,4 +1,4 @@
-from polish_salary_calc.contract_settings.contract_settings import ContractSettngs
+from polish_salary_calc.contract_settings.contract_settings import ContractSettings
 from typing import TypedDict, Self, Unpack
 from dataclasses import dataclass
 from decimal import Decimal
@@ -31,11 +31,11 @@ class WorkContractOptionsDict(TypedDict):
 
 
 @dataclass
-class WorkContractSettings(ContractSettngs):
+class WorkContractSettings(ContractSettings):
     """Configuration object for calculating salary under a work (employment) contract.
 
     Extends:
-        ContractSettngs: Base class that stores shared salary computation parameters.
+        ContractSettings: Base class that stores shared salary computation parameters.
 
     Attributes:
         work_contract_type (WorkContractType):

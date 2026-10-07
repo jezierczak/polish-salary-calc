@@ -1,4 +1,4 @@
-from polish_salary_calc.contract_settings.contract_settings import ContractSettngs
+from polish_salary_calc.contract_settings.contract_settings import ContractSettings
 from typing import TypedDict, Self, Unpack
 from dataclasses import dataclass
 from decimal import Decimal
@@ -97,12 +97,12 @@ class SelfEmploymentOptionsDict(TypedDict):
 
 
 @dataclass
-class SelfEmploymentSettings(ContractSettngs):
+class SelfEmploymentSettings(ContractSettings):
     """
     Configuration container for calculating tax and social contributions
     for self-employed individuals.
 
-    Extends ContractSettngs with additional fields relevant for:
+    Extends ContractSettings with additional fields relevant for:
     - ZUS scheme selection,
     - form of income taxation,
     - lump-sum tax rate selection,

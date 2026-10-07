@@ -1,3 +1,4 @@
+import warnings
 from dataclasses import dataclass
 from decimal import Decimal
 from abc import ABC, abstractmethod
@@ -7,7 +8,7 @@ from polish_salary_calc.salary.salaryexporter import SalaryExporter, SalaryExpor
 
 
 @dataclass
-class ContractSettngs(SalaryExporter, ABC):
+class ContractSettings(SalaryExporter, ABC):
     """
     Abstract base class defining cumulative state and configuration shared between
     all contract types (Employment, Mandate, SelfEmployment, WorkContract).
@@ -75,3 +76,15 @@ class ContractSettngs(SalaryExporter, ABC):
             str: Name of the concrete class (e.g., 'EmploymentContractSettings').
         """
         return self.__class__.__name__
+
+
+def __getattr__(name: str) -> type[ContractSettings]:
+    # Backward compatibility for the former, misspelled class name.
+    if name == "ContractSettngs":
+        warnings.warn(
+            "ContractSettngs is deprecated, use ContractSettings instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return ContractSettings
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

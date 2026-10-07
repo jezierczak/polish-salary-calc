@@ -1,4 +1,4 @@
-from polish_salary_calc.contract_settings.contract_settings import ContractSettngs
+from polish_salary_calc.contract_settings.contract_settings import ContractSettings
 from typing import TypedDict, Self, Unpack
 from dataclasses import dataclass
 from decimal import Decimal
@@ -54,12 +54,12 @@ class MandateContractOptionsDict(TypedDict):
 
 
 @dataclass
-class MandateContractSettings(ContractSettngs):
+class MandateContractSettings(ContractSettings):
     """
     Settings container for mandate (civil) contract configuration.
 
     Stores all relevant tax and insurance flags required to calculate net salary
-    and employer's cost. Inherits common accounting fields from ContractSettngs.
+    and employer's cost. Inherits common accounting fields from ContractSettings.
 
     Attributes:
         mandate_contract_type:
