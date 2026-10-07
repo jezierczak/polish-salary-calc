@@ -144,3 +144,34 @@ def test_year_contract_salary_employment_contract_compared_to_other_ycs(
 #     ycs.to_excel(tmp_path/"exported.xlsx")
 #
 #     assert ycs.to_excel.called_once_with(tmp_path/"exported.xlsx")
+
+
+def test_modify_month_without_salary_type_keeps_default_type(
+    rates_default, employment_settings_default
+) -> None:
+    from polish_salary_calc.salary.salary import SalaryType
+
+    ycs = YearContractSummary(
+        rates_default, employment_settings_default, Decimal("5000"), SalaryType.NET
+    )
+    ycs.modify_month_contracts([Months.MAR], salary_base=Decimal("4000"))
+    ycs.calculate()
+
+    assert ycs["JAN"].net_salary == Decimal("5000")
+    assert ycs["MAR"].net_salary == Decimal("4000")  # still NET, not read as gross
+
+
+def test_modify_month_can_override_salary_type(
+    rates_default, employment_settings_default
+) -> None:
+    from polish_salary_calc.salary.salary import SalaryType
+
+    ycs = YearContractSummary(
+        rates_default, employment_settings_default, Decimal("5000"), SalaryType.NET
+    )
+    ycs.modify_month_contracts(
+        [Months.MAR], salary_base=Decimal("4000"), salary_type=SalaryType.GROSS
+    )
+    ycs.calculate()
+
+    assert ycs["MAR"].salary_gross == Decimal("4000")

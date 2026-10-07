@@ -187,7 +187,8 @@ class WorkContract(BaseContract[WorkContractSettings]):
 
         Rules:
             - Lump-sum contracts up to 200 PLN are taxed at 12%.
-            - Otherwise, standard 12% tax applies to the calculated base.
+            - Otherwise, progressive scale (12% / 32% above the tax threshold,
+              cumulative with `tax_base_sum`); no monthly free amount applies.
 
         Returns:
             Decimal: Calculated tax value.
@@ -200,7 +201,12 @@ class WorkContract(BaseContract[WorkContractSettings]):
         ):
             return self.salary_gross * self.rates.income_tax[0]
 
-        return self.tax_base * self.rates.income_tax[0]
+        return SalaryUtilities.calculate_tax(
+            self.rates.income_tax,
+            self.tax_base,
+            self.contract_settings.tax_base_sum,
+            self.rates.tax_threshold,
+        )
 
     @override
     def calculate_ppk_tax(self) -> Decimal:

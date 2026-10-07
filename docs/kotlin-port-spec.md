@@ -6,7 +6,7 @@ się go przekazać komuś (lub modelowi) bez dostępu do kodu Pythona: zawiera
 wszystkie wzory, kolejność obliczeń, zasady zaokrągleń i kryteria odbioru.
 
 **Źródła prawdy, w tej kolejności:**
-1. `tests/golden/cases.json` - 1130 przypadków z wynikami do grosza (kryterium odbioru).
+1. `tests/golden/cases.json` - 1150 przypadków z wynikami do grosza (kryterium odbioru).
 2. `polish_salary_calc/rates/data/<rok>.json` - stawki roczne.
 3. Ten dokument (opis reguł).
 4. Kod Pythona (gdy dokument jest niejasny; pliki wskazane w tekście).
@@ -15,7 +15,7 @@ Jeśli dokument i golden się rozjeżdżają, **wygrywa golden**, a rozjazd nale
 
 **Weryfikacja specyfikacji:** rozdziały 3-12 zostały sprawdzone przez niezależną
 implementację napisaną wyłącznie z tego tekstu (bez zaglądania do kodu biblioteki).
-Odtworzyła ona wszystkie 1130 przypadków z golden co do grosza (w tym 90 oczekiwanych
+Odtworzyła ona wszystkie 1150 przypadków z golden co do grosza (w tym 90 oczekiwanych
 błędów). Rozdziały 13 (widok roczny) i 14 (uwagi) opisują kod, ale golden ich nie pokrywa.
 
 ---
@@ -275,11 +275,11 @@ total_markups_ratio = total_employer_cost == 0 ? 0 : round2(total_markups / tota
 - `author_rights_cost`: jeśli `!is_fifty` → 0; jeśli `is_a_lump_sum && salary_gross <= 200` → 0;
   inaczej `authorCost(0, income_tax_deduction_20_50[1] /*0.5*/, health_insurance_base, cost_fifty_sum, cost_threshold)`.
 - Podatek: `UNDER_26_AND_STUDENT` → 0. Jeśli `is_a_lump_sum && salary_gross <= 200 && type != THE_SAME_COMPANY`
-  → `salary_gross * r0`. W pozostałych przypadkach `max(tax_base * r0 - monthTaxFree, 0)`.
-  **Zlecenie nie używa drugiego progu (32%) ani `tax_base_sum`** - zob. 14.
+  → `salary_gross * r0`. W pozostałych przypadkach skala narastająca:
+  `progressiveTax(income_tax, tax_base, tax_base_sum, tax_threshold, monthTaxFree)` - dokładnie jak
+  w umowie o pracę (12% do progu 120 000 zł narastająco, 32% powyżej).
 - `fp` = 0 gdy `settings.fp == false`; `fgsp` = 0 gdy `settings.fgsp == false`; inaczej wzory bazowe.
-- PPK pracownika/pracodawcy i `ppk_tax`: 0 dla `UNDER_26_AND_STUDENT`; dla
-  `OTHER_COMPANY_MIN_SALARY` wartość wychodzi 0 i tak (bo ssb = 0). Zob. 14, pkt 1.
+- PPK pracownika/pracodawcy i `ppk_tax`: 0 dla `UNDER_26_AND_STUDENT` **i** `OTHER_COMPANY_MIN_SALARY`.
 
 ## 10. Dzieło (`WorkContract`)
 
@@ -295,7 +295,8 @@ total_markups_ratio = total_employer_cost == 0 ? 0 : round2(total_markups / tota
   `authorCost(0, 0.5, base, cost_fifty_sum, cost_threshold)` gdzie `base = salary_gross` (COMMON)
   lub `health_insurance_base` (THE_SAME_COMPANY).
 - Podatek: jeśli `is_a_lump_sum && salary_gross <= 200 && type != THE_SAME_COMPANY` → `salary_gross * r0`;
-  w pozostałych `tax_base * r0` (**bez kwoty wolnej i bez progów**; ujemne wartości wycina krok 18).
+  w pozostałych `progressiveTax(income_tax, tax_base, tax_base_sum, tax_threshold)` z `monthTaxFree = 0`
+  (skala narastająca 12% / 32% **bez** miesięcznej kwoty wolnej).
 - `fp`, `fgsp`: bez flag - wzory bazowe (dla COMMON i tak 0, bo ssb = 0).
 
 ## 11. Samozatrudnienie (`SelfEmployment`)
@@ -380,7 +381,8 @@ W Kotlinie **ustawienia traktuj jako niemutowalne** (`copy(...)` na miesiąc). P
 jeden współdzielony obiekt, co jest szczegółem implementacji, nie zachowaniem.
 
 `modify_month_contracts(miesiące, enabled, rates, salary_base, salary_type)`: nadpisuje parametry
-wybranych miesięcy (stawki, kwota, wyłączenie). Zob. 14, pkt 2.
+wybranych miesięcy (stawki, kwota, wyłączenie). Pominięte `rates` / `salary_base` / `salary_type`
+oznaczają wartości domyślne podsumowania (w tym domyślny typ GROSS/NET).
 
 Pola `*_total` w `SUMMARY` są wewnętrzne i **nie są pokryte golden**; nie eksponuj ich w UI.
 
@@ -389,27 +391,18 @@ Pola `*_total` w `SUMMARY` są wewnętrzne i **nie są pokryte golden**; nie eks
 „DIFFERENCE”. Wskaźniki (`net_ratio`, `total_markups_ratio`) liczone są z pól różnicy
 (wzory z 7). Porównywać można dowolne dwa wyniki, także miesiąc z rocznym.
 
-## 14. Do rozstrzygnięcia przed/w trakcie portu
+## 14. Znane niespójności i ograniczenia
 
-To są miejsca, w których Python robi coś, co wygląda na niezamierzone albo ograniczone.
-Port **odtwarza obecne zachowanie** (bo to definiuje golden), dopóki nie podejmiesz decyzji.
+Port **odtwarza obecne zachowanie** (to definiuje golden). Trzy wcześniej zgłoszone problemy
+(progi podatkowe zlecenia i dzieła, `salary_type` w `modify_month_contracts`, warunek PPK
+`A or B` w zleceniu) zostały poprawione w Pythonie; rozdziały 9, 10 i 13 opisują stan po poprawce.
 
-1. **`MandateContract`: `type == (A or B)`.** W `calculate_ppk_tax`, `calculate_employee_ppk_contribution`
-   i `calculate_employer_ppk_contribution` warunek `== (UNDER_26_AND_STUDENT or OTHER_COMPANY_MIN_SALARY)`
-   w Pythonie sprowadza się do porównania tylko z pierwszym. Skutek liczbowy zerowy (dla drugiego typu
-   ssb = 0, więc PPK = 0). Można bezpiecznie poprawić w Pythonie (golden się nie zmieni); w Kotlinie
-   zaimplementuj intencję (oba typy).
-2. **`modify_month_contracts`: `salary_type` domyślnie `GROSS`.** Wywołanie bez `salary_type`
-   zmienia kwotę nadpisanych miesięcy na brutto, nawet gdy domyślny typ był netto. Prawdopodobnie błąd;
-   w porcie proponuję: brak parametru = typ domyślny podsumowania.
-3. **Zlecenie i dzieło nie mają progów podatkowych.** Zlecenie liczy zawsze 12% (minus kwota wolna),
-   dzieło zawsze 12%, nawet gdy narastająca podstawa przekracza 120 000 zł. Dla rocznych zarobków
-   powyżej progu wynik jest niższy niż w rzeczywistości. Decyzja: udokumentować jako ograniczenie
-   w UI albo dodać progi (zmiana w Pythonie + golden + port).
-4. **`current_month_gross_sum` nigdy nie jest uzupełniane przez podsumowanie roczne.** Wpływa tylko
+1. **`current_month_gross_sum` nigdy nie jest uzupełniane przez podsumowanie roczne.** Wpływa tylko
    na regułę FP (`>= minimum_wage`) przy kilku umowach u jednego pracodawcy w miesiącu.
-5. **FP: `>=` dla pracownika, `>` dla samozatrudnionego.** Wygląda na niespójność; spójne z golden.
-6. **Domyślny rok `Rates()` to 2025.** W aplikacji zawsze wybieraj rok jawnie (domyślnie 2026).
+2. **FP: `>=` dla pracownika, `>` dla samozatrudnionego.** Wygląda na niespójność; zgodne z golden.
+3. **Domyślny rok `Rates()` w Pythonie to 2025.** W aplikacji zawsze wybieraj rok jawnie (domyślnie 2026).
+4. **Kwota zmniejszająca podatek (300 zł/mies.)** jest stosowana w umowie o pracę (gdy `!active_business`)
+   i w zleceniu, a w dziele nie. Model nie rozróżnia, czy pracownik złożył PIT-2.
 
 ## 15. Model wyniku (`SalaryResult`)
 
@@ -438,7 +431,7 @@ Nazwy w Kotlinie: camelCase (`salaryBase`, ...). Mapowanie na snake_case tylko w
 6. Zgłaszaj **pierwsze 20 niezgodności z `id` przypadku**, nie tylko liczbę - `id` ma postać
    `<umowa>/<rok>/<wariant>/<gross|net>-<kwota>`, więc wskazuje, którą regułę zepsuto.
 
-**Kryterium ukończenia `core`:** 1130 przypadków + 16 walidacji zielone, bez wyjątków i bez tolerancji.
+**Kryterium ukończenia `core`:** 1150 przypadków + 16 walidacji zielone, bez wyjątków i bez tolerancji.
 
 Golden **nie pokrywa**: widoku rocznego (13.1) i porównania (13.2). Dla nich napisz własne testy
 na przykładach policzonych w Pythonie (`python main.py` wypisuje kilka pełnych scenariuszy) albo

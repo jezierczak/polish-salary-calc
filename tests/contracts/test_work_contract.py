@@ -229,3 +229,27 @@ def test_work_contract_common_under_200_with_a_lump_sum() -> None:
     assert wcc.tax_advance_payment == Decimal("24")
     assert wcc.net_salary == Decimal("176")
     assert wcc.total_employer_cost == Decimal("200")
+
+
+def test_work_contract_tax_uses_second_bracket_above_threshold() -> None:
+    rates = Rates()
+    settings = WorkContractSettings(
+        work_contract_type=WorkContractType.THE_SAME_COMPANY,
+        tax_base_sum=Decimal("125000"),
+    )
+    contract = WorkContract(rates, settings)
+    contract.calculate(Decimal("6000"))
+
+    assert contract.tax_advance_payment == (
+        contract.tax_base * rates.income_tax[1]
+    ).quantize(Decimal("1"), rounding="ROUND_HALF_UP")
+
+
+def test_work_contract_tax_below_threshold_is_flat_first_bracket() -> None:
+    rates = Rates()
+    contract = WorkContract(rates, WorkContractSettings())
+    contract.calculate(Decimal("6000"))
+
+    assert contract.tax_advance_payment == (
+        contract.tax_base * rates.income_tax[0]
+    ).quantize(Decimal("1"), rounding="ROUND_HALF_UP")

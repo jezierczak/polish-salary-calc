@@ -238,6 +238,7 @@ def _mandate_variants() -> list[Variant]:
                     )
     variants += [
         _v("ppk", employee_ppk=D("0.02"), employer_ppk=D("0.015")),
+        _v("tax_crossing_threshold", tax_base_sum=D("118000")),
         (
             "social_near_cap",
             lambda r: {"social_security_base_sum": r.social_insurance_cap - D("3000")},
@@ -267,6 +268,7 @@ def _work_variants() -> list[Variant]:
                     )
                 )
     variants += [
+        _v("tax_crossing_threshold", tax_base_sum=D("118000")),
         _v("tax_over_threshold", tax_base_sum=D("125000")),
         _v("fifty_near_cap", is_fifty=True, cost_fifty_sum=D("119500")),
     ]

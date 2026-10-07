@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Fixed (behaviour)
+- Mandate (`umowa zlecenie`) and work (`umowa o dzieło`) contracts now use the
+  progressive scale: 32% is applied to the part of the cumulative tax base above
+  the 120 000 PLN threshold (`tax_base_sum` is taken into account). Previously
+  they always used 12%, which understated the tax for high yearly incomes.
+- `YearContractSummary.modify_month_contracts()` without `salary_type` keeps the
+  summary's default type instead of silently switching the month to GROSS.
+- `MandateContract`: PPK contributions and PPK tax are excluded for both
+  `UNDER_26_AND_STUDENT` and `OTHER_COMPANY_MIN_SALARY` (the comparison
+  previously covered only the first type; no numeric impact, as the base is 0).
+
 ## 0.2.0
 
 ### Added

@@ -217,7 +217,7 @@ class YearContractSummary(SalaryExporter):
         enabled: bool = True,
         rates: Rates | None = None,
         salary_base: Decimal | None = None,
-        salary_type: SalaryType = SalaryType.GROSS,
+        salary_type: SalaryType | None = None,
     ) -> None:
         """
         Override monthly settings for one or more months.
@@ -227,7 +227,8 @@ class YearContractSummary(SalaryExporter):
             enabled (bool): Whether the contract is active for these months.
             rates (Rates | None): Rates override, fallback to summary rates if None.
             salary_base (Decimal | None): Salary base override, fallback to default if None.
-            salary_type (SalaryType): Base salary interpretation (gross/net).
+            salary_type (SalaryType | None): Base salary interpretation (gross/net);
+                fallback to the summary default type if None.
         """
         for month in months:
             self._monthly_contract_parameters[month] = {

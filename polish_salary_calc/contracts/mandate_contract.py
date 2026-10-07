@@ -191,7 +191,8 @@ class MandateContract(BaseContract[MandateContractSettings]):
         Tax rules:
             - Students under 26 are tax-exempt.
             - Lump-sum contracts up to 200 PLN are taxed at 12%.
-            - Otherwise, uses standard tax base with free amount applied.
+            - Otherwise, progressive scale (12% / 32% above the tax threshold,
+              cumulative with `tax_base_sum`) with the monthly free amount applied.
 
         Returns:
             Decimal: Calculated income tax.
@@ -210,23 +211,28 @@ class MandateContract(BaseContract[MandateContractSettings]):
         ):
             return self.salary_gross * self.rates.income_tax[0]
 
-        out = self.tax_base * self.rates.income_tax[0] - self.rates.month_tax_free
-        return out if out > Decimal("0.0") else Decimal("0.0")
+        return SalaryUtilities.calculate_tax(
+            self.rates.income_tax,
+            self.tax_base,
+            self.contract_settings.tax_base_sum,
+            self.rates.tax_threshold,
+            self.rates.month_tax_free,
+        )
 
     @override
     def calculate_ppk_tax(self) -> Decimal:
-        if self.contract_settings.mandate_contract_type == (
-            MandateContractType.UNDER_26_AND_STUDENT
-            or MandateContractType.OTHER_COMPANY_MIN_SALARY
+        if self.contract_settings.mandate_contract_type in (
+            MandateContractType.UNDER_26_AND_STUDENT,
+            MandateContractType.OTHER_COMPANY_MIN_SALARY,
         ):
             return Decimal("0.0")
         return super().calculate_ppk_tax()
 
     @override
     def calculate_employee_ppk_contribution(self) -> Decimal:
-        if self.contract_settings.mandate_contract_type == (
-            MandateContractType.UNDER_26_AND_STUDENT
-            or MandateContractType.OTHER_COMPANY_MIN_SALARY
+        if self.contract_settings.mandate_contract_type in (
+            MandateContractType.UNDER_26_AND_STUDENT,
+            MandateContractType.OTHER_COMPANY_MIN_SALARY,
         ):
             return Decimal("0.0")
         return super().calculate_employee_ppk_contribution()
@@ -261,9 +267,9 @@ class MandateContract(BaseContract[MandateContractSettings]):
 
     @override
     def calculate_employer_ppk_contribution(self) -> Decimal:
-        if self.contract_settings.mandate_contract_type == (
-            MandateContractType.UNDER_26_AND_STUDENT
-            or MandateContractType.OTHER_COMPANY_MIN_SALARY
+        if self.contract_settings.mandate_contract_type in (
+            MandateContractType.UNDER_26_AND_STUDENT,
+            MandateContractType.OTHER_COMPANY_MIN_SALARY,
         ):
             return Decimal("0.0")
         return super().calculate_employer_ppk_contribution()

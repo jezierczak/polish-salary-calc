@@ -366,3 +366,58 @@ def test_mandate_contract_unknown_contract_type() -> None:
     mc = MandateContract(rates, mandate_options)
     with pytest.raises(NotImplementedError):
         mc.calculate(Decimal("4000"))
+
+
+@pytest.mark.parametrize(
+    "contract_type,expected_zero",
+    [
+        (MandateContractType.UNDER_26_AND_STUDENT, True),
+        (MandateContractType.OTHER_COMPANY_MIN_SALARY, True),
+        (MandateContractType.COMMON, False),
+        (MandateContractType.THE_SAME_COMPANY, False),
+    ],
+)
+def test_mandate_ppk_excluded_for_both_exempt_types(
+    contract_type: MandateContractType, expected_zero: bool
+) -> None:
+    settings = MandateContractSettings(
+        mandate_contract_type=contract_type,
+        employee_ppk=Decimal("0.02"),
+        employer_ppk=Decimal("0.015"),
+    )
+    contract = MandateContract(Rates(), settings)
+    contract.calculate(Decimal("6000"))
+    contract.social_security_base = Decimal("1000")  # force a non-zero base
+
+    for value in (
+        contract.calculate_ppk_tax(),
+        contract.calculate_employee_ppk_contribution(),
+        contract.calculate_employer_ppk_contribution(),
+    ):
+        assert (value == 0) is expected_zero
+
+
+def test_mandate_tax_uses_second_bracket_above_threshold() -> None:
+    rates = Rates()
+    below = MandateContract(rates, MandateContractSettings())
+    below.calculate(Decimal("6000"))
+    above = MandateContract(rates, MandateContractSettings(tax_base_sum=Decimal("125000")))
+    above.calculate(Decimal("6000"))
+
+    assert above.tax_advance_payment == (above.tax_base * rates.income_tax[1]).quantize(
+        Decimal("1"), rounding="ROUND_HALF_UP"
+    )
+    assert above.tax_advance_payment > below.tax_advance_payment
+
+
+def test_mandate_tax_crossing_threshold_splits_the_base() -> None:
+    rates = Rates()
+    contract = MandateContract(
+        rates, MandateContractSettings(tax_base_sum=Decimal("118000"))
+    )
+    contract.calculate(Decimal("6000"))
+
+    in_first = rates.tax_threshold - Decimal("118000")
+    in_second = contract.tax_base - in_first
+    expected = in_first * rates.income_tax[0] - rates.month_tax_free + in_second * rates.income_tax[1]
+    assert contract.tax_advance_payment == expected.quantize(Decimal("1"), rounding="ROUND_HALF_UP")
