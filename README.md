@@ -18,11 +18,12 @@ pip install polish-salary-calc
 ## Key Concepts
 
 1. **Rates**
-   The `Rates` object loads current legal contribution and tax rates (default covers Feb 2025 – Jan 2026).  
-   Yearly rates are available via `Rates.for_year(2025)` / `Rates.for_year(2026)`.
-   They are defined by three inputs (`minimum_wage`, `forecast_average_wage`, `average_wage_q4`);
-   ZUS bases, the 30x cap and health insurance bases are derived from them (read-only).
-   You may override rate values manually:
+   The `Rates` object holds the legal contribution and tax rates of one year.
+   Use `Rates.for_year(2025)` or `Rates.for_year(2026)`; plain `Rates()` gives the 2025 defaults.
+   A year is described by three inputs (`minimum_wage`, `forecast_average_wage`, `average_wage_q4`,
+   stored in `polish_salary_calc/rates/data/<year>.json`); the ZUS bases, the 30x annual cap and the
+   health insurance bases are derived from them and are read-only.
+   You may override other rate values manually:
    ```python
    rates['pension_insurance_rate'] = Decimal("0.0976")
    ```
@@ -57,7 +58,7 @@ from polish_salary_calc.contracts.self_employment import SelfEmployment
 from polish_salary_calc.contracts.base_contract import SalaryType
 from polish_salary_calc.summary.contract_summary import YearContractSummary, Months
 
-rates = Rates()
+rates = Rates.for_year(2026)
 
 employment_settings = (
     EmploymentContractSettings().SettingsBuilder()
@@ -142,10 +143,15 @@ rates.to_csv("rates.csv")
 employment_settings.to_json("settings.json")
 ```
 
+## Notes
+
+- Amounts are rounded half-up, as required by Polish law: tax advance, tax base and costs to full zlotys, all other amounts to groszy.
+- PPK contributions are validated: employee 0.5%-4% (2% basic, reduced rate allowed for low earners), employer 1.5%-4%.
+- See [CHANGELOG.md](CHANGELOG.md) for changes between versions.
+
 ## Requirements
-- Python 3.9+
-- `decimal` (built-in)
-- Optional: `pandas` (for DataFrame export)
+- Python 3.12+
+- `pandas` and `openpyxl` (installed automatically; used for DataFrame and Excel export)
 
 ## License
 MIT

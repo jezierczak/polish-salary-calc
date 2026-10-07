@@ -30,11 +30,16 @@ from polish_salary_calc.summary.contract_summary import YearContractSummary, Mon
 
 def main() -> None:
     # --------------1----------
-    # create Rates() object with actual polish indicators, default rates are actual the months of feb.2025 and jan.2026
-    # to update nesesery rate type rates['rate-name'] = Decimal("rate-value")
+    # create a Rates object with the polish indicators of a given year:
+    # Rates.for_year(2025) or Rates.for_year(2026); plain Rates() gives the 2025 defaults.
+    # A year is described by three inputs (minimum_wage, forecast_average_wage, average_wage_q4,
+    # see polish_salary_calc/rates/data/*.json); ZUS bases, the 30x cap and the health insurance
+    # bases are derived from them and are read-only.
+    # to change any other rate type rates['rate-name'] = Decimal("rate-value")
     # all values in salary_calculator must be provided in Decimal type
+    # amounts are rounded half-up: tax advance / tax base / costs to full zlotys, the rest to groszy
 
-    rates = Rates()
+    rates = Rates.for_year(2026)
 
     # --------------2----------
     # the next step is to set up desired contract settings:
@@ -50,6 +55,7 @@ def main() -> None:
         .is_under_26(False)
         .
         # set_name("NAME CHANGED").
+        # PPK limits are validated: employee 0.5%-4%, employer 1.5%-4%
         # set_employee_ppk(Decimal("0.02")).
         # set_employer_ppk(Decimal("0.015")).
         is_fp_fgsp(True)
