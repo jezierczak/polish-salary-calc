@@ -7,8 +7,14 @@ from typing import override
 from polish_salary_calc.salary.salaryexporter import SalaryExporter, SalaryExporterDict
 
 
-MIN_EMPLOYEE_PPK = Decimal("0.02")
+# PPK contribution limits (Act on Employee Capital Plans, art. 26-27).
+# The basic employee contribution is 2%; participants earning up to 120% of the
+# minimum wage may declare a reduced one (min 0.5%). The library cannot verify
+# that eligibility, because it depends on all of the person's remuneration.
+MIN_EMPLOYEE_PPK = Decimal("0.005")
+MAX_EMPLOYEE_PPK = Decimal("0.04")  # 2% basic + up to 2% additional
 MIN_EMPLOYER_PPK = Decimal("0.015")
+MAX_EMPLOYER_PPK = Decimal("0.04")  # 1.5% basic + up to 2.5% additional
 
 
 @dataclass
@@ -48,13 +54,17 @@ class ContractSettings(SalaryExporter, ABC):
         Check the settings against legal limits.
 
         Raises:
-            ValueError: If a non-zero PPK contribution is below the legal minimum
-                (employee 2%, employer 1.5%).
+            ValueError: If a non-zero PPK contribution is outside the legal range
+                (employee 0.5%-4%, employer 1.5%-4%).
         """
         if 0 < self.employer_ppk < MIN_EMPLOYER_PPK or (
             0 < self.employee_ppk < MIN_EMPLOYEE_PPK
         ):
             raise ValueError("Employer or employee PPK rate is too small")
+        if self.employer_ppk > MAX_EMPLOYER_PPK or (
+            self.employee_ppk > MAX_EMPLOYEE_PPK
+        ):
+            raise ValueError("Employer or employee PPK rate is too large")
 
     def __str__(self) -> str:
         """
