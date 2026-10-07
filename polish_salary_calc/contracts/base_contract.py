@@ -1,5 +1,5 @@
 from polish_salary_calc.contract_settings.contract_settings import ContractSettings
-from decimal import Decimal, ROUND_UP
+from decimal import Decimal
 from polish_salary_calc.salary.salary import Salary, SalaryType
 from polish_salary_calc.rates.rates import Rates
 from polish_salary_calc.salary.salary_utilities import SalaryUtilities
@@ -193,7 +193,7 @@ class BaseContract[T: ContractSettings](Salary, ABC):
         )
 
     def calculate_tax_advance_payment(self) -> Decimal:
-        """Tax advance = calculated tax, rounded up at accounting stage."""
+        """Tax advance = calculated tax (rounded to full zlotys by `calculate`)."""
         return self.tax
 
     def calculate_salary_deductions(self) -> Decimal:
@@ -328,15 +328,17 @@ class BaseContract[T: ContractSettings](Salary, ABC):
         self.health_insurance_base = self.calculate_health_insurance_base().quantize(
             Decimal("0.01")
         )
-        self.regular_cost = self._calculate_regular_cost().quantize(Decimal("1"))
+        self.regular_cost = SalaryUtilities.round_to_full_zloty(
+            self._calculate_regular_cost()
+        )
         self.author_rights_cost = self._calculate_author_rights_cost().quantize(
             Decimal("0.01")
         )
-        self.cost = self.calculate_cost().quantize(Decimal("1"))
+        self.cost = SalaryUtilities.round_to_full_zloty(self.calculate_cost())
         self.cost_fifty_total = self.calculate_cost_fifty_total().quantize(
             Decimal("0.01")
         )
-        self.tax_base = self.calculate_tax_base().quantize(Decimal("1"))
+        self.tax_base = SalaryUtilities.round_to_full_zloty(self.calculate_tax_base())
         self.tax_base_total = self.calculate_tax_base_total().quantize(Decimal("0.01"))
         self.ppk_tax = self.calculate_ppk_tax().quantize(Decimal("0.01"))
         self.tax = self._add_ppk_tax_and_check_if_is_positive(
@@ -349,8 +351,8 @@ class BaseContract[T: ContractSettings](Salary, ABC):
         self.salary_deductions = self.calculate_salary_deductions().quantize(
             Decimal("0.01")
         )
-        self.tax_advance_payment = self.calculate_tax_advance_payment().quantize(
-            Decimal("1"), rounding=ROUND_UP
+        self.tax_advance_payment = SalaryUtilities.round_to_full_zloty(
+            self.calculate_tax_advance_payment()
         )
         self.employee_ppk_contribution = (
             self.calculate_employee_ppk_contribution().quantize(Decimal("0.01"))

@@ -187,7 +187,7 @@ def test_work_contract_the_same_company_with_50_costs(
     assert wc2.salary_gross == Decimal("5000")
     assert wc2.health_insurance_base == Decimal("4314.50")
     assert wc2.cost == Decimal("863")
-    assert wc2.net_salary == Decimal("3511.20")
+    assert wc2.net_salary == Decimal("3512.20")
     assert wc2.total_employer_cost == Decimal("6024")
 
     work_contract_options3 = (
@@ -205,7 +205,7 @@ def test_work_contract_the_same_company_with_50_costs(
     assert wc2.is_calculated == True
     assert wc2.salary_gross == Decimal("5000")
     assert wc2.employee_ppk_contribution == Decimal("100")
-    assert wc2.net_salary == Decimal("3402.20")
+    assert wc2.net_salary == Decimal("3403.20")
     assert wc2.employer_ppk_contribution == Decimal("75")
     assert wc2.total_employer_cost == Decimal("6099")
 

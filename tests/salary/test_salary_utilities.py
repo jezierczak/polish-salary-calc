@@ -121,3 +121,18 @@ def test_salary_utilities_calculate_pension_or_disability_insurance(
     #     return Decimal('0.0')
     # else:
     #     return (social_security_base - (total_social_security_base_sum - social_insurance_cap))*pension_or_disability_insurance_rate
+
+
+@pytest.mark.parametrize(
+    "amount,expected",
+    [
+        (Decimal("291.24"), Decimal("291")),
+        (Decimal("291.49"), Decimal("291")),
+        (Decimal("291.50"), Decimal("292")),  # half-up, not half-even
+        (Decimal("292.50"), Decimal("293")),
+        (Decimal("4166.50"), Decimal("4167")),
+        (Decimal("0.00"), Decimal("0")),
+    ],
+)
+def test_round_to_full_zloty(amount: Decimal, expected: Decimal) -> None:
+    assert SalaryUtilities.round_to_full_zloty(amount) == expected

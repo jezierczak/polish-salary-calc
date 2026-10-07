@@ -408,7 +408,7 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
         self.social_insurance_sum = self.calculate_social_insurance_sum().quantize(
             Decimal("0.01")
         )
-        self.tax_base = self.calculate_tax_base().quantize(Decimal("1"))
+        self.tax_base = SalaryUtilities.round_to_full_zloty(self.calculate_tax_base())
         self.tax_base_total = self.calculate_tax_base_total().quantize(Decimal("0.01"))
         self.ppk_tax = self.calculate_ppk_tax().quantize(Decimal("0.01"))
         self.tax = self._add_ppk_tax_and_check_if_is_positive(
@@ -423,8 +423,8 @@ class SelfEmployment(BaseContract[SelfEmploymentSettings]):
         self.salary_deductions = self.calculate_salary_deductions().quantize(
             Decimal("0.01")
         )
-        self.tax_advance_payment = self.calculate_tax_advance_payment().quantize(
-            Decimal("1")
+        self.tax_advance_payment = SalaryUtilities.round_to_full_zloty(
+            self.calculate_tax_advance_payment()
         )
         self.employer_ppk_contribution = (
             self.calculate_employer_ppk_contribution().quantize(Decimal("0.01"))

@@ -56,7 +56,7 @@ def employment_contract_mock_6000_gross() -> MagicMock:
     employment_contract.tax_advance_payment = Decimal("585")  # zaliczka podatku
     employment_contract.salary_deductions = Decimal("0.00")  # potrącenia wypłaty
     employment_contract.employee_ppk_contribution = Decimal("0.00")
-    employment_contract.net_salary = Decimal("4125.43")
+    employment_contract.net_salary = Decimal("4126.43")
     employment_contract.employer_pension_contribution = Decimal(
         "585.60"
     )  # ub emeryt prac
@@ -144,9 +144,9 @@ def test_employment_contract_6000_gross(employment_contract_mock_6000_gross) -> 
     assert (
         ec.accident_insurance == rates.accident_insurance_rate * ec.social_security_base
     )
-    assert ec.net_salary == Decimal("4209.43")
+    assert ec.net_salary == Decimal("4210.43")
     assert ec.cost_fifty_total == options_3.cost_fifty_sum
-    assert ec.total_markups == Decimal("3866.37")
+    assert ec.total_markups == Decimal("3865.37")
     assert ec.total_markups_ratio == (
         ec.total_markups / ec.total_employer_cost * 100
     ).quantize(Decimal("0.01"))
@@ -183,8 +183,8 @@ def test_employment_contract_6000_gross_wrong_ppk() -> None:
             Decimal("147.0"),
             Decimal("465.97"),
             Decimal("250.0"),
-            Decimal("292"),
-            Decimal("4419.43"),
+            Decimal("291"),
+            Decimal("4420.43"),
             Decimal("585.60"),
             Decimal("390.0"),
             Decimal("100.20"),
@@ -199,8 +199,8 @@ def test_employment_contract_6000_gross_wrong_ppk() -> None:
             Decimal("367.50"),
             Decimal("1164.92"),
             Decimal("250.0"),
-            Decimal("1224"),
-            Decimal("10554.58"),
+            Decimal("1223"),
+            Decimal("10555.58"),
             Decimal("1464.00"),
             Decimal("975.0"),
             Decimal("250.50"),

@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 
 class SalaryUtilities:
@@ -7,6 +7,21 @@ class SalaryUtilities:
     These functions are used internally by salary computation routines and are isolated
     to support reuse and testability.
     """
+
+    @staticmethod
+    def round_to_full_zloty(amount: Decimal) -> Decimal:
+        """
+        Rounds a tax amount to full zlotys the way Polish tax law requires
+        (art. 63 par. 1 of the Tax Ordinance): cents below 50 groszy are dropped,
+        50 groszy and more are rounded up.
+
+        Args:
+            amount (Decimal): Amount to round.
+
+        Returns:
+            Decimal: Amount rounded half-up to full zlotys.
+        """
+        return amount.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
 
     @staticmethod
     def calculate_pension_or_disability_insurance(
