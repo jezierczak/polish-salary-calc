@@ -19,7 +19,10 @@ pip install polish-salary-calc
 
 1. **Rates**
    The `Rates` object loads current legal contribution and tax rates (default covers Feb 2025 – Jan 2026).  
-   You may override values manually:
+   Yearly rates are available via `Rates.for_year(2025)` / `Rates.for_year(2026)`.
+   They are defined by three inputs (`minimum_wage`, `forecast_average_wage`, `average_wage_q4`);
+   ZUS bases, the 30x cap and health insurance bases are derived from them (read-only).
+   You may override rate values manually:
    ```python
    rates['pension_insurance_rate'] = Decimal("0.0976")
    ```
