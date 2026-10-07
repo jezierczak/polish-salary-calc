@@ -159,17 +159,14 @@ def test_employment_contract_6000_gross(employment_contract_mock_6000_gross) -> 
 
 
 def test_employment_contract_6000_gross_wrong_ppk() -> None:
-    rates = Rates()
-    options = (
+    builder = (
         EmploymentContractSettings()
         .SettingsBuilder()
         .set_employee_ppk(Decimal("0.1"))
         .set_employer_ppk(Decimal("0.01"))
-        .build()
     )
     with pytest.raises(ValueError, match="Employer or employee PPK rate is too small"):
-        ec = EmploymentContract(rates, options)
-        ec.calculate(Decimal("6000"), SalaryType.GROSS)
+        builder.build()
 
 
 @pytest.mark.parametrize(

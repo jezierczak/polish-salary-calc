@@ -221,4 +221,5 @@ class MandateContractSettings(ContractSettings):
             Returns:
                 MandateContractSettings
             """
+            self._options.validate()
             return self._options

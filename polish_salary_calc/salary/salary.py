@@ -160,10 +160,7 @@ class Salary[T: ContractSettings](SalaryExporter):
         else:
             self.name = self.contract_settings.name
 
-        if 0 < self.contract_settings.employer_ppk < Decimal(
-            "0.015"
-        ) or 0 < self.contract_settings.employee_ppk < Decimal("0.02"):
-            raise ValueError("Employer or employee PPK rate is too small")
+        self.contract_settings.validate()
 
         self.salary_base: Decimal = Decimal("0.0")  # płaca podstawowa
         self.salary_sick_pay: Decimal = Decimal("0.0")  # chorobowe

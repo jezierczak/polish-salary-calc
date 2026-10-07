@@ -65,11 +65,8 @@ class BaseContract[T: ContractSettings](Salary, ABC):
         Raises:
             ValueError: If employee or employer PPK contribution is below legal minimum.
         """
+        options.validate()
         self.contract_settings = options
-        if 0 < self.contract_settings.employer_ppk < Decimal(
-            "0.015"
-        ) or 0 < self.contract_settings.employee_ppk < Decimal("0.02"):
-            raise ValueError("Employer or employee PPK is too small")
         self.is_calculated = False
 
     def get_rates(self) -> Rates:

@@ -149,4 +149,5 @@ class WorkContractSettings(ContractSettings):
 
         def build(self) -> "WorkContractSettings":
             """Finalize and return the settings instance."""
+            self._options.validate()
             return self._options

@@ -286,4 +286,5 @@ class SelfEmploymentSettings(ContractSettings):
 
         def build(self) -> "SelfEmploymentSettings":
             """Finalize and return the configured settings instance."""
+            self._options.validate()
             return self._options

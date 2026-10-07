@@ -203,4 +203,5 @@ class EmploymentContractSettings(ContractSettings):
             Returns:
                 EmploymentContractSettings: The configured instance.
             """
+            self._options.validate()
             return self._options

@@ -7,6 +7,10 @@ from typing import override
 from polish_salary_calc.salary.salaryexporter import SalaryExporter, SalaryExporterDict
 
 
+MIN_EMPLOYEE_PPK = Decimal("0.02")
+MIN_EMPLOYER_PPK = Decimal("0.015")
+
+
 @dataclass
 class ContractSettings(SalaryExporter, ABC):
     """
@@ -35,6 +39,22 @@ class ContractSettings(SalaryExporter, ABC):
     employer_ppk: Decimal = Decimal("0.0")
     accident_insurance_rate: Decimal | None = None
     salary_deductions: Decimal = Decimal("0.0")
+
+    def __post_init__(self) -> None:
+        self.validate()
+
+    def validate(self) -> None:
+        """
+        Check the settings against legal limits.
+
+        Raises:
+            ValueError: If a non-zero PPK contribution is below the legal minimum
+                (employee 2%, employer 1.5%).
+        """
+        if 0 < self.employer_ppk < MIN_EMPLOYER_PPK or (
+            0 < self.employee_ppk < MIN_EMPLOYEE_PPK
+        ):
+            raise ValueError("Employer or employee PPK rate is too small")
 
     def __str__(self) -> str:
         """
