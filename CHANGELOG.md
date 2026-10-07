@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.1
 
 ### Fixed (behaviour)
 - Mandate (`umowa zlecenie`) and work (`umowa o dzieło`) contracts now use the

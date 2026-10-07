@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "polish-salary-calc"
-version = "0.2.0"
+version = "0.2.1"
 description = "Polish salary calculator"
 authors = ["Jarosław Jezierczak <jezierczak@gmail.com>"]
 license = "MIT"
